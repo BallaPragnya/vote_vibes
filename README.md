@@ -51,4 +51,35 @@ The platform enables administrators to manage elections while allowing students 
 ---
 
 ## Repository Structure
+votevibes/
+
+├── backend/
+
+├── frontend/
+
+├── docs/
+
+└── README.md
+
+
+---
+
+## Development Workflow
+
+main
+↑
+develop
+↑
+feature/*
+
+All development is performed through feature branches and Pull Requests into the develop branch.
+
+---
+
+## Team
+
+- Pragnya — Technical Lead & Backend
+- Archan — Frontend Lead
+- Sadhvika — Blockchain & Security
+- Nithya — Admin & QA
 
