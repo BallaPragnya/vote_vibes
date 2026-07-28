@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+
+# Environment
+.env
+backend/.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+backend/logs/
+*.log
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
