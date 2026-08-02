@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import healthRouter from './health.routes.js';
+import authRouter from './auth.routes.js';
 
 const router = Router();
 
@@ -17,5 +18,6 @@ router.get('/', (req, res) => {
  * Mount sub-routers under /api prefix
  */
 router.use('/api/health', healthRouter);
+router.use('/api/auth', authRouter);
 
 export default router;

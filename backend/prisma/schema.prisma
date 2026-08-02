@@ -63,28 +63,41 @@ model Department {
   @@map("departments")
 }
 
-model User {
-  id              String       @id @default(uuid()) @db.Uuid
-  studentIdNumber String       @unique @map("student_id_number") @db.VarChar(50)
-  email           String       @unique @db.VarChar(255)
-  passwordHash    String       @map("password_hash") @db.VarChar(255)
-  fullName        String       @map("full_name") @db.VarChar(150)
-  role            UserRole     @default(STUDENT)
-  status          UserStatus   @default(PENDING)
-  departmentId    String       @map("department_id") @db.Uuid
-  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt       DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+model Role {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique @db.VarChar(50)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  department      Department    @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  users     User[]
+
+  @@map("roles")
+}
+
+model User {
+  id              String        @id @default(uuid()) @db.Uuid
+  name            String        @db.VarChar(150)
+  email           String        @unique @db.VarChar(255)
+  password        String        @map("password") @db.VarChar(255)
+  roleId          String        @map("role_id") @db.Uuid
+  studentIdNumber String?       @unique @map("student_id_number") @db.VarChar(50)
+  status          UserStatus    @default(PENDING)
+  departmentId    String?       @map("department_id") @db.Uuid
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  role            Role          @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  department      Department?   @relation(fields: [departmentId], references: [id], onDelete: Restrict)
   createdElections Election[]   @relation("ElectionCreator")
   candidacies     Candidate[]
   voterRegistries VoterRegistry[]
   voteReceipts    VoteReceipt[]
   notifications   Notification[]
   auditLogs       AuditLog[]
+  refreshTokens   RefreshToken[]
 
   @@index([email])
-  @@index([studentIdNumber])
+  @@index([roleId])
   @@index([departmentId])
   @@map("users")
 }
@@ -257,3 +270,18 @@ model AuditLog {
   @@index([createdAt(sort: Desc)])
   @@map("audit_logs")
 }
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  token     String   @unique @db.VarChar(500)
+  userId    String   @map("user_id") @db.Uuid
+  expiresAt DateTime @map("expires_at") @db.Timestamptz
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
