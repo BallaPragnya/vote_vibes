@@ -10,6 +10,10 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import VoterDashboardPage from './pages/VoterDashboardPage';
 import CandidatePortalPage from './pages/CandidatePortalPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import ElectionDashboard from './pages/ElectionDashboard';
+import ElectionDetails from './pages/ElectionDetails';
+import CreateElection from './pages/CreateElection';
+import EditElection from './pages/EditElection';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import NotFoundPage from './pages/NotFoundPage';
 
@@ -43,10 +47,10 @@ function HeroLanding() {
       <div className="flex flex-wrap justify-center items-center gap-4 mb-14">
         {isAuthenticated ? (
           <Link
-            to={getRoleRedirectPath(role)}
+            to="/elections"
             className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-600 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-bold text-sm shadow-xl shadow-indigo-500/25 transition-all transform hover:scale-[1.02]"
           >
-            <span>Go to Authorized Portal ({role})</span>
+            <span>Explore Campus Elections</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         ) : (
@@ -94,9 +98,9 @@ function HeroLanding() {
           <div className="p-2.5 bg-emerald-500/10 rounded-xl w-fit mb-3 text-emerald-400">
             <FileCheck className="w-5 h-5" />
           </div>
-          <h3 className="font-semibold text-slate-200 text-sm mb-1">Role-Based Dashboard Portals</h3>
+          <h3 className="font-semibold text-slate-200 text-sm mb-1">Election Management Module</h3>
           <p className="text-xs text-slate-400 leading-relaxed">
-            Customized UI workspaces tailored specifically for Voters, Candidates, and Administrators.
+            Phase 3 Election Dashboard, candidate nominations, status filtering, and details view.
           </p>
         </div>
       </div>
@@ -104,7 +108,7 @@ function HeroLanding() {
       {/* Verification Status Badge */}
       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">
         <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-        <span>Phase 2 Branch Active: <strong>archananewphase2</strong></span>
+        <span>Phase 3 Branch Active: <strong>archana_phase3</strong></span>
       </div>
     </div>
   );
@@ -123,11 +127,47 @@ export default function App() {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
-            {/* Protected Voter Routes */}
+            {/* Protected Election Routes */}
+            <Route
+              path="/elections"
+              element={
+                <ProtectedRoute>
+                  <ElectionDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/elections/:id"
+              element={
+                <ProtectedRoute>
+                  <ElectionDetails />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Admin Election Routes */}
+            <Route
+              path="/admin/elections/create"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN', 'ELECTION_COMMISSION']}>
+                  <CreateElection />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/elections/:id/edit"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN', 'ELECTION_COMMISSION']}>
+                  <EditElection />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected User Dashboards */}
             <Route
               path="/voter/dashboard"
               element={
-                <ProtectedRoute allowedRoles={['VOTER', 'CANDIDATE', 'ADMIN']}>
+                <ProtectedRoute allowedRoles={['VOTER', 'CANDIDATE', 'ADMIN', 'SUPER_ADMIN', 'ELECTION_COMMISSION']}>
                   <VoterDashboardPage />
                 </ProtectedRoute>
               }
@@ -135,7 +175,7 @@ export default function App() {
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute allowedRoles={['VOTER', 'CANDIDATE', 'ADMIN']}>
+                <ProtectedRoute allowedRoles={['VOTER', 'CANDIDATE', 'ADMIN', 'SUPER_ADMIN', 'ELECTION_COMMISSION']}>
                   <VoterDashboardPage />
                 </ProtectedRoute>
               }
@@ -145,23 +185,23 @@ export default function App() {
             <Route
               path="/candidate/portal"
               element={
-                <ProtectedRoute allowedRoles={['CANDIDATE', 'ADMIN']}>
+                <ProtectedRoute allowedRoles={['CANDIDATE', 'ADMIN', 'SUPER_ADMIN']}>
                   <CandidatePortalPage />
                 </ProtectedRoute>
               }
             />
 
-            {/* Protected Admin Routes */}
+            {/* Protected Admin Console */}
             <Route
               path="/admin/dashboard"
               element={
-                <ProtectedRoute allowedRoles={['ADMIN']}>
+                <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN', 'ELECTION_COMMISSION']}>
                   <AdminDashboardPage />
                 </ProtectedRoute>
               }
             />
 
-            {/* Catch-all 404 Route */}
+            {/* Wildcard 404 Route */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </MainLayout>
