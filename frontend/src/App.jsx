@@ -21,10 +21,17 @@ import NominationFormPage from './pages/NominationFormPage';
 import CandidateStatusPage from './pages/CandidateStatusPage';
 import AdminCandidateApprovalPage from './pages/AdminCandidateApprovalPage';
 
+import VotingPage from './pages/VotingPage';
+import VotingBallotPage from './pages/VotingBallotPage';
+import VoteReceiptPage from './pages/VoteReceiptPage';
+import VoteStatusPage from './pages/VoteStatusPage';
+import BlockchainAuditExplorerPage from './pages/BlockchainAuditExplorerPage';
+import ElectionResultsPage from './pages/ElectionResultsPage';
+
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import NotFoundPage from './pages/NotFoundPage';
 
-import { ShieldCheck, Vote, Cpu, CheckCircle2, Lock, FileCheck, ArrowRight, Award } from 'lucide-react';
+import { ShieldCheck, Vote, Cpu, CheckCircle2, Lock, FileCheck, ArrowRight, Award, BarChart3 } from 'lucide-react';
 import useAuth from './hooks/useAuth';
 
 function HeroLanding() {
@@ -53,13 +60,22 @@ function HeroLanding() {
       {/* Call to Action Buttons */}
       <div className="flex flex-wrap justify-center items-center gap-4 mb-14">
         {isAuthenticated ? (
-          <Link
-            to="/elections"
-            className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-600 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-bold text-sm shadow-xl shadow-indigo-500/25 transition-all transform hover:scale-[1.02]"
-          >
-            <span>Explore Campus Elections</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+          <>
+            <Link
+              to="/elections"
+              className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-600 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-bold text-sm shadow-xl shadow-indigo-500/25 transition-all transform hover:scale-[1.02]"
+            >
+              <span>Explore Campus Elections</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link
+              to="/vote/status"
+              className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-emerald-400 font-semibold text-sm transition-all hover:bg-slate-850"
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>Voter Status Dashboard</span>
+            </Link>
+          </>
         ) : (
           <>
             <Link
@@ -102,12 +118,12 @@ function HeroLanding() {
         </div>
 
         <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition-all duration-300 backdrop-blur-md shadow-lg">
-          <div className="p-2.5 bg-amber-500/10 rounded-xl w-fit mb-3 text-amber-400">
-            <Award className="w-5 h-5" />
+          <div className="p-2.5 bg-emerald-500/10 rounded-xl w-fit mb-3 text-emerald-400">
+            <BarChart3 className="w-5 h-5" />
           </div>
-          <h3 className="font-semibold text-slate-200 text-sm mb-1">Candidate Management</h3>
+          <h3 className="font-semibold text-slate-200 text-sm mb-1">Voting & Verified Receipts</h3>
           <p className="text-xs text-slate-400 leading-relaxed">
-            Phase 4 Candidate directory, file upload handling, manifesto viewer, and Admin approval workflow.
+            Phase 5 Voting booth, double-voting prevention, receipts, results, and public audit explorer.
           </p>
         </div>
       </div>
@@ -115,7 +131,7 @@ function HeroLanding() {
       {/* Verification Status Badge */}
       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">
         <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-        <span>Phase 4 Branch Active: <strong>archana_phase4</strong></span>
+        <span>Phase 5 Branch Active: <strong>archana_phase5</strong></span>
       </div>
     </div>
   );
@@ -133,6 +149,42 @@ export default function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/unauthorized" element={<UnauthorizedPage />} />
+            <Route path="/audit" element={<BlockchainAuditExplorerPage />} />
+            <Route path="/receipt/:receiptId" element={<VoteReceiptPage />} />
+
+            {/* Voting Scope Protected Routes */}
+            <Route
+              path="/vote"
+              element={
+                <ProtectedRoute allowedRoles={['VOTER', 'STUDENT', 'CANDIDATE', 'ADMIN', 'SUPER_ADMIN', 'ELECTION_COMMISSION']}>
+                  <VotingPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/vote/status"
+              element={
+                <ProtectedRoute allowedRoles={['VOTER', 'STUDENT', 'CANDIDATE', 'ADMIN', 'SUPER_ADMIN', 'ELECTION_COMMISSION']}>
+                  <VoteStatusPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/vote/receipt"
+              element={
+                <ProtectedRoute allowedRoles={['VOTER', 'STUDENT', 'CANDIDATE', 'ADMIN', 'SUPER_ADMIN', 'ELECTION_COMMISSION']}>
+                  <VoteReceiptPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/vote/:electionId"
+              element={
+                <ProtectedRoute allowedRoles={['VOTER', 'STUDENT', 'CANDIDATE', 'ADMIN', 'SUPER_ADMIN', 'ELECTION_COMMISSION']}>
+                  <VotingPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Protected Election Routes */}
             <Route
@@ -152,6 +204,23 @@ export default function App() {
               }
             />
             <Route
+              path="/elections/:id/vote"
+              element={
+                <ProtectedRoute allowedRoles={['VOTER', 'STUDENT', 'CANDIDATE', 'ADMIN', 'SUPER_ADMIN', 'ELECTION_COMMISSION']}>
+                  <VotingBallotPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/elections/:id/results"
+              element={
+                <ProtectedRoute>
+                  <ElectionResultsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
               path="/admin/elections/create"
               element={
                 <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN', 'ELECTION_COMMISSION']}>
@@ -168,7 +237,7 @@ export default function App() {
               }
             />
 
-            {/* Candidate Management Scope Routes */}
+            {/* Candidate Management Routes */}
             <Route
               path="/candidates"
               element={

@@ -12,7 +12,8 @@ import {
   Home,
   ChevronDown,
   Layers,
-  Users
+  Users,
+  ShieldCheck
 } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
 
@@ -61,7 +62,7 @@ export default function Navbar() {
                   VoteVibes
                 </span>
                 <span className="hidden sm:inline-block text-[10px] uppercase font-semibold px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                  Phase 4
+                  Phase 5
                 </span>
               </div>
               <p className="text-[10px] text-slate-400 font-medium hidden sm:block">
@@ -113,6 +114,19 @@ export default function Navbar() {
                 Candidates
               </Link>
             )}
+
+            {/* Audit Explorer */}
+            <Link
+              to="/audit"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                isActive('/audit')
+                  ? 'bg-emerald-500/10 text-emerald-300 font-semibold border border-emerald-500/20'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-900/60'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              Audit Explorer
+            </Link>
 
             {/* Role: VOTER Portal */}
             {isAuthenticated && (
@@ -210,12 +224,12 @@ export default function Navbar() {
                         Candidate Directory
                       </Link>
                       <Link
-                        to="/voter/dashboard"
+                        to="/audit"
                         onClick={() => setUserDropdownOpen(false)}
                         className="flex items-center gap-2 px-4 py-2 text-xs text-slate-300 hover:bg-slate-800 hover:text-white"
                       >
-                        <LayoutDashboard className="w-3.5 h-3.5 text-indigo-400" />
-                        My Dashboard
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                        Audit Explorer
                       </Link>
                     </div>
 
@@ -293,35 +307,13 @@ export default function Navbar() {
             </Link>
           )}
 
-          {isAuthenticated && (
-            <Link
-              to="/voter/dashboard"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-slate-900"
-            >
-              Voter Portal
-            </Link>
-          )}
-
-          {isAuthenticated && (role === 'CANDIDATE' || role === 'ADMIN' || role === 'SUPER_ADMIN') && (
-            <Link
-              to="/candidate/portal"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-sm text-amber-300 hover:bg-slate-900"
-            >
-              Candidate Workspace
-            </Link>
-          )}
-
-          {isAuthenticated && (role === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'ELECTION_COMMISSION') && (
-            <Link
-              to="/admin/dashboard"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-sm text-purple-300 hover:bg-slate-900"
-            >
-              Admin Console
-            </Link>
-          )}
+          <Link
+            to="/audit"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block px-3 py-2 rounded-lg text-sm text-emerald-300 hover:bg-slate-900"
+          >
+            Audit Explorer
+          </Link>
 
           <div className="pt-3 border-t border-slate-900">
             {isAuthenticated ? (
