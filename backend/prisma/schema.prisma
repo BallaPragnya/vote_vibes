@@ -106,6 +106,7 @@ model User {
   candidacies     Candidate[]
   voterRegistries VoterRegistry[]
   voteReceipts    VoteReceipt[]
+  votes           Vote[]        @relation("UserVotes")
   notifications   Notification[]
   auditLogs       AuditLog[]
   refreshTokens   RefreshToken[]
@@ -135,6 +136,7 @@ model Election {
   voterRegistries        VoterRegistry[]
   voteTransactions       VoteTransaction[]
   voteReceipts           VoteReceipt[]
+  votes                  Vote[]               @relation("ElectionVotes")
 
   @@index([status])
   @@index([startTime, endTime])
@@ -189,11 +191,36 @@ model Candidate {
   position         Position?        @relation(fields: [positionId], references: [id], onDelete: Cascade)
   user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   voteTransactions VoteTransaction[]
+  votes            Vote[]           @relation("CandidateVotes")
+  voteReceipts     VoteReceipt[]
 
   @@unique([positionId, userId])
   @@index([positionId, status])
   @@index([electionId])
   @@map("candidates")
+}
+
+model Vote {
+  id                      String    @id @default(uuid()) @db.Uuid
+  electionId              String    @map("election_id") @db.Uuid
+  candidateId             String    @map("candidate_id") @db.Uuid
+  voterId                 String    @map("voter_id") @db.Uuid
+  transactionReceipt      String    @map("transaction_receipt") @db.VarChar(255)
+  blockchainTransactionId String?   @map("blockchain_transaction_id") @db.VarChar(255)
+  voteTimestamp           DateTime  @default(now()) @map("vote_timestamp") @db.Timestamptz
+  createdAt               DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt               DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  election                Election  @relation("ElectionVotes", fields: [electionId], references: [id], onDelete: Restrict)
+  candidate               Candidate @relation("CandidateVotes", fields: [candidateId], references: [id], onDelete: Restrict)
+  voter                   User      @relation("UserVotes", fields: [voterId], references: [id], onDelete: Restrict)
+
+  @@unique([electionId, voterId])
+  @@index([electionId])
+  @@index([candidateId])
+  @@index([voterId])
+  @@index([transactionReceipt])
+  @@map("votes")
 }
 
 model VoterRegistry {
@@ -246,17 +273,22 @@ model VoteTransaction {
 }
 
 model VoteReceipt {
-  id          String   @id @default(uuid()) @db.Uuid
-  userId      String   @map("user_id") @db.Uuid
-  electionId  String   @map("election_id") @db.Uuid
-  receiptCode String   @unique @map("receipt_code") @db.VarChar(64)
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  electionId    String    @map("election_id") @db.Uuid
+  candidateId   String?   @map("candidate_id") @db.Uuid
+  receiptCode   String    @unique @map("receipt_code") @db.VarChar(64)
+  receiptHash   String?   @map("receipt_hash") @db.VarChar(64)
+  voteTimestamp DateTime  @default(now()) @map("vote_timestamp") @db.Timestamptz
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  election    Election @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  election      Election  @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  candidate     Candidate? @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   @@unique([electionId, userId])
   @@index([receiptCode])
+  @@index([receiptHash])
   @@map("vote_receipts")
 }
 
