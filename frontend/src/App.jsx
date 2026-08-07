@@ -14,9 +14,13 @@ import ElectionDashboard from './pages/ElectionDashboard';
 import ElectionDetails from './pages/ElectionDetails';
 import CreateElection from './pages/CreateElection';
 import EditElection from './pages/EditElection';
-import CandidateManagementPage from './pages/CandidateManagementPage';
-import NominateCandidatePage from './pages/NominateCandidatePage';
+
+import CandidateGridPage from './pages/CandidateGridPage';
 import CandidateDetailsPage from './pages/CandidateDetailsPage';
+import NominationFormPage from './pages/NominationFormPage';
+import CandidateStatusPage from './pages/CandidateStatusPage';
+import AdminCandidateApprovalPage from './pages/AdminCandidateApprovalPage';
+
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import NotFoundPage from './pages/NotFoundPage';
 
@@ -24,7 +28,7 @@ import { ShieldCheck, Vote, Cpu, CheckCircle2, Lock, FileCheck, ArrowRight, Awar
 import useAuth from './hooks/useAuth';
 
 function HeroLanding() {
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="py-8 sm:py-16 text-center max-w-4xl mx-auto">
@@ -103,7 +107,7 @@ function HeroLanding() {
           </div>
           <h3 className="font-semibold text-slate-200 text-sm mb-1">Candidate Management</h3>
           <p className="text-xs text-slate-400 leading-relaxed">
-            Phase 4 Candidate directory, nomination applications, manifesto reviews, and approval controls.
+            Phase 4 Candidate directory, file upload handling, manifesto viewer, and Admin approval workflow.
           </p>
         </div>
       </div>
@@ -164,12 +168,12 @@ export default function App() {
               }
             />
 
-            {/* Candidate Management Routes */}
+            {/* Candidate Management Scope Routes */}
             <Route
               path="/candidates"
               element={
                 <ProtectedRoute>
-                  <CandidateManagementPage />
+                  <CandidateGridPage />
                 </ProtectedRoute>
               }
             />
@@ -177,7 +181,15 @@ export default function App() {
               path="/candidates/nominate"
               element={
                 <ProtectedRoute>
-                  <NominateCandidatePage />
+                  <NominationFormPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/candidates/status"
+              element={
+                <ProtectedRoute>
+                  <CandidateStatusPage />
                 </ProtectedRoute>
               }
             />
@@ -189,8 +201,16 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/candidates"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN', 'ELECTION_COMMISSION']}>
+                  <AdminCandidateApprovalPage />
+                </ProtectedRoute>
+              }
+            />
 
-            {/* Protected User Dashboards */}
+            {/* User Portals */}
             <Route
               path="/voter/dashboard"
               element={
@@ -224,7 +244,7 @@ export default function App() {
               }
             />
 
-            {/* Catch-all 404 Route */}
+            {/* Wildcard 404 Route */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </MainLayout>
