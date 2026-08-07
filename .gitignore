@@ -18,3 +18,7 @@ backend/logs/
 Thumbs.db
 .vscode/
 .idea/
+powershell.cmd
+frontend/powershell.cmd
+
+
