@@ -20,6 +20,15 @@ import candidateValidation, {
   verifyCandidateIntegrity,
   createCandidateRegistrationBlockData,
 } from './candidateValidation.js';
+import votingIntegration, {
+  generateReceiptId,
+  recordVoteOnBlockchain,
+  generateCryptographicVoteReceipt,
+} from './votingIntegration.js';
+import voteVerification, {
+  verifyVoteReceipt,
+  verifyVoterParticipation,
+} from './voteVerification.js';
 
 export {
   calculateHash,
@@ -41,4 +50,11 @@ export {
   validateCandidateSecurity,
   verifyCandidateIntegrity,
   createCandidateRegistrationBlockData,
+  votingIntegration,
+  generateReceiptId,
+  recordVoteOnBlockchain,
+  generateCryptographicVoteReceipt,
+  voteVerification,
+  verifyVoteReceipt,
+  verifyVoterParticipation,
 };
