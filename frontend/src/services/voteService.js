@@ -11,12 +11,20 @@ export const voteService = {
   },
 
   /**
-   * Check if current user has voted in an election
+   * Check voting status of current voter for an election
+   * @param {string} electionId
+   */
+  async getVotingStatus(electionId) {
+    const response = await api.get(`/votes/status/${electionId}`);
+    return response.data;
+  },
+
+  /**
+   * Alias for getVotingStatus
    * @param {string} electionId
    */
   async getVoterStatus(electionId) {
-    const response = await api.get(`/votes/status/${electionId}`);
-    return response.data;
+    return this.getVotingStatus(electionId);
   },
 
   /**
@@ -26,6 +34,15 @@ export const voteService = {
   async getVoteReceipt(receiptId) {
     const response = await api.get(`/votes/receipt/${receiptId}`);
     return response.data;
+  },
+
+  /**
+   * Trigger download of receipt metadata object or file
+   * @param {string} receiptId
+   */
+  async downloadReceipt(receiptId) {
+    const data = await this.getVoteReceipt(receiptId);
+    return data;
   },
 
   /**

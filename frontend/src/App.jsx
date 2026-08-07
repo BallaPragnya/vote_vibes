@@ -21,8 +21,10 @@ import NominationFormPage from './pages/NominationFormPage';
 import CandidateStatusPage from './pages/CandidateStatusPage';
 import AdminCandidateApprovalPage from './pages/AdminCandidateApprovalPage';
 
+import VotingPage from './pages/VotingPage';
 import VotingBallotPage from './pages/VotingBallotPage';
 import VoteReceiptPage from './pages/VoteReceiptPage';
+import VoteStatusPage from './pages/VoteStatusPage';
 import BlockchainAuditExplorerPage from './pages/BlockchainAuditExplorerPage';
 import ElectionResultsPage from './pages/ElectionResultsPage';
 
@@ -67,11 +69,11 @@ function HeroLanding() {
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
-              to="/audit"
+              to="/vote/status"
               className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-emerald-400 font-semibold text-sm transition-all hover:bg-slate-850"
             >
               <ShieldCheck className="w-4 h-4" />
-              <span>Audit Blockchain Explorer</span>
+              <span>Voter Status Dashboard</span>
             </Link>
           </>
         ) : (
@@ -150,6 +152,40 @@ export default function App() {
             <Route path="/audit" element={<BlockchainAuditExplorerPage />} />
             <Route path="/receipt/:receiptId" element={<VoteReceiptPage />} />
 
+            {/* Voting Scope Protected Routes */}
+            <Route
+              path="/vote"
+              element={
+                <ProtectedRoute allowedRoles={['VOTER', 'STUDENT', 'CANDIDATE', 'ADMIN', 'SUPER_ADMIN', 'ELECTION_COMMISSION']}>
+                  <VotingPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/vote/status"
+              element={
+                <ProtectedRoute allowedRoles={['VOTER', 'STUDENT', 'CANDIDATE', 'ADMIN', 'SUPER_ADMIN', 'ELECTION_COMMISSION']}>
+                  <VoteStatusPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/vote/receipt"
+              element={
+                <ProtectedRoute allowedRoles={['VOTER', 'STUDENT', 'CANDIDATE', 'ADMIN', 'SUPER_ADMIN', 'ELECTION_COMMISSION']}>
+                  <VoteReceiptPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/vote/:electionId"
+              element={
+                <ProtectedRoute allowedRoles={['VOTER', 'STUDENT', 'CANDIDATE', 'ADMIN', 'SUPER_ADMIN', 'ELECTION_COMMISSION']}>
+                  <VotingPage />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Protected Election Routes */}
             <Route
               path="/elections"
@@ -170,7 +206,7 @@ export default function App() {
             <Route
               path="/elections/:id/vote"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['VOTER', 'STUDENT', 'CANDIDATE', 'ADMIN', 'SUPER_ADMIN', 'ELECTION_COMMISSION']}>
                   <VotingBallotPage />
                 </ProtectedRoute>
               }
