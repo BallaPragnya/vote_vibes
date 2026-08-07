@@ -4,6 +4,7 @@ import authRouter from './auth.routes.js';
 import electionRouter from './election.routes.js';
 import candidateRouter from './candidate.routes.js';
 import voteRouter from './vote.routes.js';
+import resultRouter from './result.routes.js';
 
 const router = Router();
 
@@ -25,5 +26,6 @@ router.use('/api/auth', authRouter);
 router.use('/api/elections', electionRouter);
 router.use('/api/candidates', candidateRouter);
 router.use('/api/votes', voteRouter);
+router.use('/api/results', resultRouter);
 
 export default router;
