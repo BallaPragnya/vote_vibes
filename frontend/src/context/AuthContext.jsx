@@ -9,7 +9,20 @@ export function AuthProvider({ children }) {
   const [refreshToken, setRefreshToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize session from localStorage on mount
+  // Helper to resolve landing path based on user role
+  const getRoleRedirectPath = useCallback((userRole) => {
+    switch (userRole) {
+      case 'ADMIN':
+        return '/admin/dashboard';
+      case 'CANDIDATE':
+        return '/candidate/portal';
+      case 'VOTER':
+      default:
+        return '/voter/dashboard';
+    }
+  }, []);
+
+  // Restore session from localStorage on initial render
   useEffect(() => {
     const session = authService.getStoredSession();
     if (session.accessToken && session.user) {
@@ -38,16 +51,17 @@ export function AuthProvider({ children }) {
           user: userData,
         });
 
-        return { success: true, user: userData };
+        const redirectPath = getRoleRedirectPath(userData.role);
+        return { success: true, user: userData, redirectPath };
       }
       return { success: false, message: response.message || 'Login failed' };
     } catch (error) {
-      const message = error.response?.data?.message || error.message || 'Login failed';
+      const message = error.response?.data?.message || error.message || 'Invalid email or password.';
       return { success: false, message };
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [getRoleRedirectPath]);
 
   const register = useCallback(async (userData) => {
     setIsLoading(true);
@@ -67,14 +81,25 @@ export function AuthProvider({ children }) {
           user: newUser,
         });
 
-        return { success: true, user: newUser };
+        const redirectPath = getRoleRedirectPath(newUser.role);
+        return { success: true, user: newUser, redirectPath };
       }
       return { success: false, message: response.message || 'Registration failed' };
     } catch (error) {
-      const message = error.response?.data?.message || error.message || 'Registration failed';
+      const message = error.response?.data?.message || error.message || 'Registration failed.';
       return { success: false, message };
     } finally {
       setIsLoading(false);
+    }
+  }, [getRoleRedirectPath]);
+
+  const forgotPassword = useCallback(async (emailPayload) => {
+    try {
+      const response = await authService.forgotPassword(emailPayload);
+      return { success: true, message: response.message || 'Password recovery instructions sent.' };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to process password recovery request.';
+      return { success: false, message };
     }
   }, []);
 
@@ -106,8 +131,10 @@ export function AuthProvider({ children }) {
     role: user?.role || null,
     login,
     register,
+    forgotPassword,
     logout,
     hasRole,
+    getRoleRedirectPath,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

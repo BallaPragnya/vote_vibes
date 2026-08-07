@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Lock, Mail, Eye, EyeOff, LogIn, AlertCircle, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, LogIn, AlertCircle, CheckCircle2, KeyRound } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
 
 export default function LoginPage() {
@@ -8,7 +8,9 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || '/dashboard';
+  // Query parameter if session expired
+  const queryParams = new URLSearchParams(location.search);
+  const isSessionExpired = queryParams.get('expired') === 'true';
 
   const [formData, setFormData] = useState({
     email: '',
@@ -16,7 +18,7 @@ export default function LoginPage() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState(isSessionExpired ? 'Your session expired. Please sign in again.' : '');
   const [successMsg, setSuccessMsg] = useState('');
 
   const handleChange = (e) => {
@@ -33,7 +35,7 @@ export default function LoginPage() {
     setSuccessMsg('');
 
     if (!formData.email || !formData.password) {
-      setErrorMsg('Please provide both email and password.');
+      setErrorMsg('Please enter both email and password.');
       return;
     }
 
@@ -42,9 +44,10 @@ export default function LoginPage() {
     setIsSubmitting(false);
 
     if (result.success) {
-      setSuccessMsg('Authentication successful! Redirecting...');
+      setSuccessMsg('Login successful! Redirecting...');
       setTimeout(() => {
-        navigate(from, { replace: true });
+        const redirectDestination = location.state?.from?.pathname || result.redirectPath || '/voter/dashboard';
+        navigate(redirectDestination, { replace: true });
       }, 700);
     } else {
       setErrorMsg(result.message || 'Invalid email or password.');
@@ -58,28 +61,27 @@ export default function LoginPage() {
 
   return (
     <div className="max-w-md mx-auto py-8">
-      {/* Container Card */}
       <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl relative overflow-hidden">
         
-        {/* Top Glow Accent */}
+        {/* Top Accent Bar */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-violet-600" />
 
-        {/* Form Header */}
+        {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl mb-3 text-indigo-400">
             <Lock className="w-6 h-6" />
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-            Welcome Back
+            Voter Login
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Sign in to access your VoteVibes voter portal
+            Sign in to access your VoteVibes digital election portal
           </p>
         </div>
 
-        {/* Alert Notifications */}
+        {/* Alerts */}
         {errorMsg && (
-          <div className="mb-6 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-start gap-2 animate-shake">
+          <div className="mb-6 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-start gap-2">
             <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
             <span>{errorMsg}</span>
           </div>
@@ -94,7 +96,7 @@ export default function LoginPage() {
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Email Field */}
+          {/* Email */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
               Email Address
@@ -115,12 +117,19 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Password Field */}
+          {/* Password */}
           <div>
             <div className="flex justify-between items-center mb-1.5">
               <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
                 Password
               </label>
+              <Link
+                to="/forgot-password"
+                className="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1"
+              >
+                <KeyRound className="w-3 h-3" />
+                Forgot Password?
+              </Link>
             </div>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
@@ -145,7 +154,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Submit Button */}
+          {/* Submit */}
           <button
             type="submit"
             disabled={isSubmitting}
@@ -154,7 +163,7 @@ export default function LoginPage() {
             {isSubmitting ? (
               <>
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span>Authenticating...</span>
+                <span>Authenticating Credentials...</span>
               </>
             ) : (
               <>
@@ -167,28 +176,35 @@ export default function LoginPage() {
 
         {/* Demo Quick Fill Badges */}
         <div className="mt-8 pt-6 border-t border-slate-800/80 text-center">
-          <p className="text-[11px] text-slate-500 mb-2 font-medium">Quick Demo Autofill</p>
-          <div className="flex justify-center gap-2">
+          <p className="text-[11px] text-slate-500 mb-2 font-medium">Quick Test Autofill</p>
+          <div className="flex justify-center gap-2 flex-wrap">
             <button
               type="button"
-              onClick={() => fillQuickDemo('jane.student@college.edu', 'securePassword123')}
+              onClick={() => fillQuickDemo('voter@college.edu', 'password123')}
               className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-indigo-300 hover:bg-slate-800/50 transition-colors"
             >
-              Voter Account
+              Voter
+            </button>
+            <button
+              type="button"
+              onClick={() => fillQuickDemo('candidate@college.edu', 'password123')}
+              className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-amber-300 hover:bg-slate-800/50 transition-colors"
+            >
+              Candidate
             </button>
             <button
               type="button"
               onClick={() => fillQuickDemo('admin@college.edu', 'adminPassword123')}
               className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-purple-300 hover:bg-slate-800/50 transition-colors"
             >
-              Admin Account
+              Administrator
             </button>
           </div>
         </div>
 
-        {/* Footer Navigation */}
+        {/* Footer Link */}
         <div className="mt-6 text-center text-xs text-slate-400">
-          Don't have an account?{' '}
+          Don't have a voter account?{' '}
           <Link to="/register" className="font-semibold text-indigo-400 hover:text-indigo-300 underline">
             Register here
           </Link>

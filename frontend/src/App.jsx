@@ -6,14 +6,18 @@ import ProtectedRoute from './routes/ProtectedRoute';
 
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import VoterDashboardPage from './pages/VoterDashboardPage';
+import CandidatePortalPage from './pages/CandidatePortalPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import UnauthorizedPage from './pages/UnauthorizedPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 import { ShieldCheck, Vote, Cpu, CheckCircle2, Lock, FileCheck, ArrowRight } from 'lucide-react';
 import useAuth from './hooks/useAuth';
 
 function HeroLanding() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, role, getRoleRedirectPath } = useAuth();
 
   return (
     <div className="py-8 sm:py-16 text-center max-w-4xl mx-auto">
@@ -32,17 +36,17 @@ function HeroLanding() {
       </h1>
 
       <p className="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
-        VoteVibes empowers college students to securely cast digital votes backed by custom SHA-256 blockchain verification and Role-Based Access Control.
+        VoteVibes enables college students to securely cast digital votes backed by custom SHA-256 blockchain verification and Role-Based Access Control.
       </p>
 
       {/* Call to Action Buttons */}
       <div className="flex flex-wrap justify-center items-center gap-4 mb-14">
         {isAuthenticated ? (
           <Link
-            to="/dashboard"
+            to={getRoleRedirectPath(role)}
             className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-600 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-bold text-sm shadow-xl shadow-indigo-500/25 transition-all transform hover:scale-[1.02]"
           >
-            <span>Go to Voter Dashboard</span>
+            <span>Go to Authorized Portal ({role})</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         ) : (
@@ -72,7 +76,7 @@ function HeroLanding() {
           </div>
           <h3 className="font-semibold text-slate-200 text-sm mb-1">JWT & RBAC Security</h3>
           <p className="text-xs text-slate-400 leading-relaxed">
-            Dual-token authentication (15-min Access Token & 7-day Refresh Token) with Voter, Candidate, and Admin roles.
+            Dual-token authentication with Voter, Candidate, and Administrator access control tiers.
           </p>
         </div>
 
@@ -82,7 +86,7 @@ function HeroLanding() {
           </div>
           <h3 className="font-semibold text-slate-200 text-sm mb-1">Custom Blockchain Ledger</h3>
           <p className="text-xs text-slate-400 leading-relaxed">
-            Every vote generates an immutable cryptographic SHA-256 block hash for total auditability without compromising privacy.
+            Every cast vote records an immutable cryptographic SHA-256 block hash for total auditability.
           </p>
         </div>
 
@@ -90,9 +94,9 @@ function HeroLanding() {
           <div className="p-2.5 bg-emerald-500/10 rounded-xl w-fit mb-3 text-emerald-400">
             <FileCheck className="w-5 h-5" />
           </div>
-          <h3 className="font-semibold text-slate-200 text-sm mb-1">Election Management</h3>
+          <h3 className="font-semibold text-slate-200 text-sm mb-1">Role-Based Dashboard Portals</h3>
           <p className="text-xs text-slate-400 leading-relaxed">
-            Seamless election creation, candidate registration, status tracking, and live results analytics.
+            Customized UI workspaces tailored specifically for Voters, Candidates, and Administrators.
           </p>
         </div>
       </div>
@@ -112,17 +116,52 @@ export default function App() {
       <BrowserRouter>
         <MainLayout>
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<HeroLanding />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/unauthorized" element={<UnauthorizedPage />} />
+
+            {/* Protected Voter Routes */}
             <Route
-              path="/dashboard"
+              path="/voter/dashboard"
               element={
-                <ProtectedRoute>
-                  <DashboardPage />
+                <ProtectedRoute allowedRoles={['VOTER', 'CANDIDATE', 'ADMIN']}>
+                  <VoterDashboardPage />
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={['VOTER', 'CANDIDATE', 'ADMIN']}>
+                  <VoterDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected Candidate Routes */}
+            <Route
+              path="/candidate/portal"
+              element={
+                <ProtectedRoute allowedRoles={['CANDIDATE', 'ADMIN']}>
+                  <CandidatePortalPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected Admin Routes */}
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Catch-all 404 Route */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </MainLayout>

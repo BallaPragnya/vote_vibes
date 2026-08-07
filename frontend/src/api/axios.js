@@ -9,7 +9,7 @@ const api = axios.create({
   },
 });
 
-// Request Interceptor: Attach Access Token if available
+// Request Interceptor: Attach JWT Access Token if present
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
@@ -21,13 +21,14 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor: Handle 401 & Auto-Refresh Access Token
+// Response Interceptor: Automatically refresh expired access tokens via /auth/refresh
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Trigger auto-refresh only on 401 response and if retry hasn't been attempted yet
+    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes('/auth/login')) {
       originalRequest._retry = true;
       const refreshToken = localStorage.getItem('refreshToken');
 
@@ -47,11 +48,11 @@ api.interceptors.response.use(
             return api(originalRequest);
           }
         } catch (refreshErr) {
-          // Token refresh failed - clear stored auth data
+          // Token refresh failed or revoked - purge local credentials and redirect to login
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
           localStorage.removeItem('user');
-          window.location.href = '/login';
+          window.location.href = '/login?expired=true';
           return Promise.reject(refreshErr);
         }
       }
