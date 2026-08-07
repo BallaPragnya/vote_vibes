@@ -7,6 +7,12 @@ import voterIdentity, {
   verifyVoterHash,
   validateAnonymizedBlockData,
 } from './voterIdentity.js';
+import electionIntegrity, {
+  computeElectionIntegrityHash,
+  onElectionCreatedHook,
+  onElectionStateChangedHook,
+  verifyElectionIntegrity,
+} from './electionIntegrity.js';
 
 export {
   calculateHash,
@@ -17,4 +23,9 @@ export {
   createAnonymizedVotePayload,
   verifyVoterHash,
   validateAnonymizedBlockData,
+  electionIntegrity,
+  computeElectionIntegrityHash,
+  onElectionCreatedHook,
+  onElectionStateChangedHook,
+  verifyElectionIntegrity,
 };
