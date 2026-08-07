@@ -2,6 +2,7 @@ import { Router } from 'express';
 import healthRouter from './health.routes.js';
 import authRouter from './auth.routes.js';
 import electionRouter from './election.routes.js';
+import candidateRouter from './candidate.routes.js';
 
 const router = Router();
 
@@ -21,5 +22,6 @@ router.get('/', (req, res) => {
 router.use('/api/health', healthRouter);
 router.use('/api/auth', authRouter);
 router.use('/api/elections', electionRouter);
+router.use('/api/candidates', candidateRouter);
 
 export default router;

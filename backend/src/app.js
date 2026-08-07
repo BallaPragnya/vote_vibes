@@ -23,6 +23,9 @@ app.use(requestLogger);
 // 5. Configure CORS
 app.use(cors(corsOptions));
 
+// Serve static uploads
+app.use('/uploads', express.static('uploads'));
+
 // 6. Register routes
 app.use('/', routes);
 

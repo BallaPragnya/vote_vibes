@@ -42,8 +42,48 @@ export const authenticate = async (req, res, next) => {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role ? user.role.name : 'VOTER',
+      role: user.role ? user.role.name : 'STUDENT',
     };
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Express middleware to optionally extract user details from JWT Bearer tokens if present,
+ * without throwing 401 if missing (allowing public access).
+ */
+export const optionalAuthenticate = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      req.user = null;
+      return next();
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (!token || token.trim() === '') {
+      req.user = null;
+      return next();
+    }
+
+    try {
+      const decoded = jwt.verify(token, config.jwtAccessSecret);
+      const user = await userRepository.findById(decoded.id);
+      if (user) {
+        req.user = {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role ? user.role.name : 'STUDENT',
+        };
+      }
+    } catch (err) {
+      req.user = null;
+    }
 
     next();
   } catch (error) {
@@ -53,4 +93,5 @@ export const authenticate = async (req, res, next) => {
 
 export default {
   authenticate,
+  optionalAuthenticate,
 };
