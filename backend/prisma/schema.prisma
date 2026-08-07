@@ -41,6 +41,19 @@ enum CandidateStatus {
   REJECTED
 }
 
+enum NominationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum NotificationType {
   ELECTION_ANNOUNCEMENT
   VOTE_CONFIRMATION
@@ -118,6 +131,7 @@ model Election {
   createdBy              User                 @relation("ElectionCreator", fields: [createdById], references: [id], onDelete: Restrict)
   departments            ElectionDepartment[]
   positions              Position[]
+  candidates             Candidate[]
   voterRegistries        VoterRegistry[]
   voteTransactions       VoteTransaction[]
   voteReceipts           VoteReceipt[]
@@ -157,21 +171,28 @@ model Position {
 }
 
 model Candidate {
-  id         String          @id @default(uuid()) @db.Uuid
-  positionId String          @map("position_id") @db.Uuid
-  userId     String          @map("user_id") @db.Uuid
-  manifesto  String          @db.Text
-  photoUrl   String?         @map("photo_url") @db.VarChar(500)
-  status     CandidateStatus @default(PENDING)
-  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt  DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+  id               String           @id @default(uuid()) @db.Uuid
+  electionId       String?          @map("election_id") @db.Uuid
+  positionId       String?          @map("position_id") @db.Uuid
+  userId           String           @map("user_id") @db.Uuid
+  fullName         String?          @map("full_name") @db.VarChar(150)
+  manifesto        String           @db.Text
+  profileImage     String?          @map("profile_image") @db.VarChar(500)
+  photoUrl         String?          @map("photo_url") @db.VarChar(500)
+  nominationStatus NominationStatus @default(PENDING) @map("nomination_status")
+  approvalStatus   ApprovalStatus   @default(PENDING) @map("approval_status")
+  status           CandidateStatus  @default(PENDING)
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz
 
-  position   Position        @relation(fields: [positionId], references: [id], onDelete: Cascade)
-  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  election         Election?        @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  position         Position?        @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   voteTransactions VoteTransaction[]
 
   @@unique([positionId, userId])
   @@index([positionId, status])
+  @@index([electionId])
   @@map("candidates")
 }
 
@@ -285,4 +306,3 @@ model RefreshToken {
   @@index([token])
   @@map("refresh_tokens")
 }
-
