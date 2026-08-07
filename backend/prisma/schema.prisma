@@ -32,6 +32,7 @@ enum ElectionStatus {
   ACTIVE
   COMPLETED
   CANCELLED
+  ARCHIVED
 }
 
 enum CandidateStatus {
