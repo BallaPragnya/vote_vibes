@@ -14,14 +14,17 @@ import ElectionDashboard from './pages/ElectionDashboard';
 import ElectionDetails from './pages/ElectionDetails';
 import CreateElection from './pages/CreateElection';
 import EditElection from './pages/EditElection';
+import CandidateManagementPage from './pages/CandidateManagementPage';
+import NominateCandidatePage from './pages/NominateCandidatePage';
+import CandidateDetailsPage from './pages/CandidateDetailsPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import NotFoundPage from './pages/NotFoundPage';
 
-import { ShieldCheck, Vote, Cpu, CheckCircle2, Lock, FileCheck, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Vote, Cpu, CheckCircle2, Lock, FileCheck, ArrowRight, Award } from 'lucide-react';
 import useAuth from './hooks/useAuth';
 
 function HeroLanding() {
-  const { isAuthenticated, role, getRoleRedirectPath } = useAuth();
+  const { isAuthenticated, role } = useAuth();
 
   return (
     <div className="py-8 sm:py-16 text-center max-w-4xl mx-auto">
@@ -95,12 +98,12 @@ function HeroLanding() {
         </div>
 
         <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition-all duration-300 backdrop-blur-md shadow-lg">
-          <div className="p-2.5 bg-emerald-500/10 rounded-xl w-fit mb-3 text-emerald-400">
-            <FileCheck className="w-5 h-5" />
+          <div className="p-2.5 bg-amber-500/10 rounded-xl w-fit mb-3 text-amber-400">
+            <Award className="w-5 h-5" />
           </div>
-          <h3 className="font-semibold text-slate-200 text-sm mb-1">Election Management Module</h3>
+          <h3 className="font-semibold text-slate-200 text-sm mb-1">Candidate Management</h3>
           <p className="text-xs text-slate-400 leading-relaxed">
-            Phase 3 Election Dashboard, candidate nominations, status filtering, and details view.
+            Phase 4 Candidate directory, nomination applications, manifesto reviews, and approval controls.
           </p>
         </div>
       </div>
@@ -108,7 +111,7 @@ function HeroLanding() {
       {/* Verification Status Badge */}
       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">
         <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-        <span>Phase 3 Branch Active: <strong>archana_phase3</strong></span>
+        <span>Phase 4 Branch Active: <strong>archana_phase4</strong></span>
       </div>
     </div>
   );
@@ -144,8 +147,6 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-
-            {/* Admin Election Routes */}
             <Route
               path="/admin/elections/create"
               element={
@@ -159,6 +160,32 @@ export default function App() {
               element={
                 <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN', 'ELECTION_COMMISSION']}>
                   <EditElection />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Candidate Management Routes */}
+            <Route
+              path="/candidates"
+              element={
+                <ProtectedRoute>
+                  <CandidateManagementPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/candidates/nominate"
+              element={
+                <ProtectedRoute>
+                  <NominateCandidatePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/candidates/:id"
+              element={
+                <ProtectedRoute>
+                  <CandidateDetailsPage />
                 </ProtectedRoute>
               }
             />
@@ -180,8 +207,6 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-
-            {/* Protected Candidate Routes */}
             <Route
               path="/candidate/portal"
               element={
@@ -190,8 +215,6 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-
-            {/* Protected Admin Console */}
             <Route
               path="/admin/dashboard"
               element={
@@ -201,7 +224,7 @@ export default function App() {
               }
             />
 
-            {/* Wildcard 404 Route */}
+            {/* Catch-all 404 Route */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </MainLayout>
