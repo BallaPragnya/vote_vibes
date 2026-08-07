@@ -34,6 +34,16 @@ const validateEnv = () => {
     );
   }
 
+  // Security Hardening: Enforce explicit JWT secrets in production
+  if (process.env.NODE_ENV === 'production') {
+    if (!process.env.JWT_ACCESS_SECRET || process.env.JWT_ACCESS_SECRET.includes('super_secret')) {
+      errors.push('Production Security Violation: JWT_ACCESS_SECRET must be explicitly set to a strong secret in production.');
+    }
+    if (!process.env.JWT_REFRESH_SECRET || process.env.JWT_REFRESH_SECRET.includes('super_secret')) {
+      errors.push('Production Security Violation: JWT_REFRESH_SECRET must be explicitly set to a strong secret in production.');
+    }
+  }
+
   if (errors.length > 0) {
     console.error('===================================================');
     console.error(' [FATAL ERROR] ENVIRONMENT CONFIGURATION FAILURE');
