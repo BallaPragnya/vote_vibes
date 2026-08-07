@@ -13,6 +13,13 @@ import electionIntegrity, {
   onElectionStateChangedHook,
   verifyElectionIntegrity,
 } from './electionIntegrity.js';
+import candidateValidation, {
+  hashCandidateId,
+  computeCandidateIntegrityHash,
+  validateCandidateSecurity,
+  verifyCandidateIntegrity,
+  createCandidateRegistrationBlockData,
+} from './candidateValidation.js';
 
 export {
   calculateHash,
@@ -28,4 +35,10 @@ export {
   onElectionCreatedHook,
   onElectionStateChangedHook,
   verifyElectionIntegrity,
+  candidateValidation,
+  hashCandidateId,
+  computeCandidateIntegrityHash,
+  validateCandidateSecurity,
+  verifyCandidateIntegrity,
+  createCandidateRegistrationBlockData,
 };
