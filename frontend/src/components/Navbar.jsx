@@ -13,7 +13,8 @@ import {
   ChevronDown,
   Layers,
   Users,
-  ShieldCheck
+  ShieldCheck,
+  BarChart3
 } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
 
@@ -61,8 +62,8 @@ export default function Navbar() {
                 <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">
                   VoteVibes
                 </span>
-                <span className="hidden sm:inline-block text-[10px] uppercase font-semibold px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                  Phase 5
+                <span className="hidden sm:inline-block text-[10px] uppercase font-semibold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  Phase 6
                 </span>
               </div>
               <p className="text-[10px] text-slate-400 font-medium hidden sm:block">
@@ -115,6 +116,19 @@ export default function Navbar() {
               </Link>
             )}
 
+            {/* Results Analytics Dashboard */}
+            <Link
+              to="/results"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                isActive('/results') || isActive('/winner')
+                  ? 'bg-amber-500/10 text-amber-300 font-semibold border border-amber-500/20'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-900/60'
+              }`}
+            >
+              <BarChart3 className="w-3.5 h-3.5 text-amber-400" />
+              Results & Analytics
+            </Link>
+
             {/* Audit Explorer */}
             <Link
               to="/audit"
@@ -140,21 +154,6 @@ export default function Navbar() {
               >
                 <LayoutDashboard className="w-3.5 h-3.5" />
                 Voter Portal
-              </Link>
-            )}
-
-            {/* Role: CANDIDATE Workspace */}
-            {isAuthenticated && (role === 'CANDIDATE' || role === 'ADMIN' || role === 'SUPER_ADMIN') && (
-              <Link
-                to="/candidate/portal"
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  location.pathname === '/candidate/portal'
-                    ? 'bg-amber-500/10 text-amber-300 font-semibold border border-amber-500/20'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-900/60'
-                }`}
-              >
-                <Award className="w-3.5 h-3.5" />
-                Candidate Workspace
               </Link>
             )}
 
@@ -216,12 +215,12 @@ export default function Navbar() {
                         Elections Hub
                       </Link>
                       <Link
-                        to="/candidates"
+                        to="/results"
                         onClick={() => setUserDropdownOpen(false)}
                         className="flex items-center gap-2 px-4 py-2 text-xs text-slate-300 hover:bg-slate-800 hover:text-white"
                       >
-                        <Users className="w-3.5 h-3.5 text-amber-400" />
-                        Candidate Directory
+                        <BarChart3 className="w-3.5 h-3.5 text-amber-400" />
+                        Result Dashboard
                       </Link>
                       <Link
                         to="/audit"
@@ -297,15 +296,13 @@ export default function Navbar() {
             </Link>
           )}
 
-          {isAuthenticated && (
-            <Link
-              to="/candidates"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-sm text-amber-300 hover:bg-slate-900"
-            >
-              Candidate Directory
-            </Link>
-          )}
+          <Link
+            to="/results"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block px-3 py-2 rounded-lg text-sm text-amber-300 hover:bg-slate-900"
+          >
+            Results & Analytics
+          </Link>
 
           <Link
             to="/audit"
