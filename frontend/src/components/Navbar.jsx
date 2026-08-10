@@ -62,8 +62,8 @@ export default function Navbar() {
                 <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">
                   VoteVibes
                 </span>
-                <span className="hidden sm:inline-block text-[10px] uppercase font-semibold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                  Phase 6
+                <span className="hidden sm:inline-block text-[10px] uppercase font-semibold px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                  E-Voting
                 </span>
               </div>
               <p className="text-[10px] text-slate-400 font-medium hidden sm:block">
@@ -250,7 +250,7 @@ export default function Navbar() {
                   to="/login"
                   className="px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900/60 rounded-xl transition-colors"
                 >
-                  Log In
+                  Login
                 </Link>
                 <Link
                   to="/register"
@@ -336,7 +336,7 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className="text-center py-2.5 text-xs font-semibold text-slate-300 bg-slate-900 border border-slate-800 rounded-xl"
                 >
-                  Log In
+                  Login
                 </Link>
                 <Link
                   to="/register"

@@ -32,6 +32,7 @@ import ResultDashboard from './pages/ResultDashboard';
 import WinnerPage from './pages/WinnerPage';
 
 import UnauthorizedPage from './pages/UnauthorizedPage';
+import ServerErrorPage from './pages/ServerErrorPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 import { ShieldCheck, Vote, Cpu, CheckCircle2, Lock, FileCheck, ArrowRight, Award, BarChart3, Trophy } from 'lucide-react';
@@ -69,7 +70,7 @@ function HeroLanding() {
               className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-purple-600 to-indigo-600 hover:from-amber-600 hover:to-indigo-700 text-white font-bold text-sm shadow-xl shadow-amber-500/25 transition-all transform hover:scale-[1.02]"
             >
               <BarChart3 className="w-4 h-4" />
-              <span>Phase 6 Result Dashboard</span>
+              <span>Result Dashboard</span>
             </Link>
             <Link
               to="/elections"
@@ -92,7 +93,7 @@ function HeroLanding() {
               to="/login"
               className="px-6 py-3.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-200 font-semibold text-sm transition-all hover:bg-slate-850"
             >
-              Sign In to Account
+              Login to Account
             </Link>
           </>
         )}
@@ -124,7 +125,7 @@ function HeroLanding() {
           <div className="p-2.5 bg-amber-500/10 rounded-xl w-fit mb-3 text-amber-400">
             <Trophy className="w-5 h-5" />
           </div>
-          <h3 className="font-semibold text-slate-200 text-sm mb-1">Phase 6 Results & PDF Export</h3>
+          <h3 className="font-semibold text-slate-200 text-sm mb-1">Results & PDF Export</h3>
           <p className="text-xs text-slate-400 leading-relaxed">
             Interactive Recharts dashboard, turnout metrics, declared winner announcement, and PDF summary widget.
           </p>
@@ -134,7 +135,7 @@ function HeroLanding() {
       {/* Verification Status Badge */}
       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">
         <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-        <span>Phase 6 Branch Active: <strong>archana_phase6</strong></span>
+        <span>System Verified: <strong>VoteVibes Production Ready</strong></span>
       </div>
     </div>
   );
@@ -152,10 +153,11 @@ export default function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/unauthorized" element={<UnauthorizedPage />} />
+            <Route path="/500" element={<ServerErrorPage />} />
             <Route path="/audit" element={<BlockchainAuditExplorerPage />} />
             <Route path="/receipt/:receiptId" element={<VoteReceiptPage />} />
 
-            {/* Phase 6 Result Dashboard & Winner Routes */}
+            {/* Result Dashboard & Winner Routes */}
             <Route path="/results" element={<ResultDashboard />} />
             <Route path="/results/:electionId" element={<ResultDashboard />} />
             <Route path="/winner/:electionId" element={<WinnerPage />} />
