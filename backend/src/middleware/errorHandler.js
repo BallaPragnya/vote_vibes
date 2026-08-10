@@ -9,7 +9,9 @@ import AppError from '../utils/AppError.js';
 const handlePrismaKnownRequestError = (err) => {
   switch (err.code) {
     case 'P2002': {
-      const target = err.meta?.target ? ` (${Array.isArray(err.meta.target) ? err.meta.target.join(', ') : err.meta.target})` : '';
+      const target = (config.isDevelopment && err.meta?.target)
+        ? ` (${Array.isArray(err.meta.target) ? err.meta.target.join(', ') : err.meta.target})`
+        : '';
       return new AppError(`Duplicate field value entered${target}. Please use another value.`, 409, 'DuplicateFieldsError');
     }
     case 'P2025': {
@@ -17,14 +19,14 @@ const handlePrismaKnownRequestError = (err) => {
       return new AppError(cause, 404, 'RecordNotFoundError');
     }
     case 'P2003': {
-      const field = err.meta?.field_name || 'foreign key';
-      return new AppError(`Invalid reference: Foreign key constraint failed on ${field}.`, 400, 'ForeignKeyConstraintError');
+      const field = (config.isDevelopment && err.meta?.field_name) ? ` on ${err.meta.field_name}` : '';
+      return new AppError(`Invalid reference: Foreign key constraint failed${field}.`, 400, 'ForeignKeyConstraintError');
     }
     case 'P2000': {
       return new AppError('The provided value for the column is too long.', 400, 'ValueTooLongError');
     }
     default:
-      return new AppError(`Database request error: ${err.message}`, 400, 'DatabaseError');
+      return new AppError(config.isDevelopment ? `Database request error: ${err.message}` : 'Database operation failed.', 400, 'DatabaseError');
   }
 };
 
