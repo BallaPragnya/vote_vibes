@@ -1,0 +1,346 @@
+// VoteVibes V3 Prisma Schema
+// PostgreSQL Database Configuration
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum UserRole {
+  STUDENT
+  ELECTION_COMMISSION
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  VERIFIED
+  SUSPENDED
+}
+
+enum ElectionStatus {
+  DRAFT
+  UPCOMING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  ARCHIVED
+}
+
+enum CandidateStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum NominationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum NotificationType {
+  ELECTION_ANNOUNCEMENT
+  VOTE_CONFIRMATION
+  SYSTEM_ALERT
+}
+
+// ==========================================
+// MODELS
+// ==========================================
+
+model Department {
+  id                  String               @id @default(uuid()) @db.Uuid
+  code                String               @unique @db.VarChar(20)
+  name                String               @db.VarChar(100)
+  createdAt           DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+
+  users               User[]
+  electionDepartments ElectionDepartment[]
+
+  @@map("departments")
+}
+
+model Role {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique @db.VarChar(50)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  users     User[]
+
+  @@map("roles")
+}
+
+model User {
+  id              String        @id @default(uuid()) @db.Uuid
+  name            String        @db.VarChar(150)
+  email           String        @unique @db.VarChar(255)
+  password        String        @map("password") @db.VarChar(255)
+  roleId          String        @map("role_id") @db.Uuid
+  studentIdNumber String?       @unique @map("student_id_number") @db.VarChar(50)
+  status          UserStatus    @default(PENDING)
+  departmentId    String?       @map("department_id") @db.Uuid
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  role            Role          @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  department      Department?   @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  createdElections Election[]   @relation("ElectionCreator")
+  candidacies     Candidate[]
+  voterRegistries VoterRegistry[]
+  voteReceipts    VoteReceipt[]
+  votes           Vote[]        @relation("UserVotes")
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+  refreshTokens   RefreshToken[]
+
+  @@index([email])
+  @@index([roleId])
+  @@index([departmentId])
+  @@map("users")
+}
+
+model Election {
+  id                     String               @id @default(uuid()) @db.Uuid
+  title                  String               @db.VarChar(200)
+  description            String?              @db.Text
+  startTime              DateTime             @map("start_time") @db.Timestamptz
+  endTime                DateTime             @map("end_time") @db.Timestamptz
+  status                 ElectionStatus       @default(DRAFT)
+  isDepartmentRestricted Boolean              @default(false) @map("is_department_restricted")
+  createdById            String               @map("created_by_id") @db.Uuid
+  createdAt              DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt              DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+
+  createdBy              User                 @relation("ElectionCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  departments            ElectionDepartment[]
+  positions              Position[]
+  candidates             Candidate[]
+  voterRegistries        VoterRegistry[]
+  voteTransactions       VoteTransaction[]
+  voteReceipts           VoteReceipt[]
+  votes                  Vote[]               @relation("ElectionVotes")
+
+  @@index([status])
+  @@index([startTime, endTime])
+  @@map("elections")
+}
+
+model ElectionDepartment {
+  id           String     @id @default(uuid()) @db.Uuid
+  electionId   String     @map("election_id") @db.Uuid
+  departmentId String     @map("department_id") @db.Uuid
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz
+
+  election     Election   @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@unique([electionId, departmentId])
+  @@index([departmentId])
+  @@map("election_departments")
+}
+
+model Position {
+  id           String     @id @default(uuid()) @db.Uuid
+  electionId   String     @map("election_id") @db.Uuid
+  title        String     @db.VarChar(100)
+  displayOrder Int        @default(0) @map("display_order")
+  maxChoices   Int        @default(1) @map("max_choices")
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz
+
+  election     Election   @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  candidates   Candidate[]
+  voteTransactions VoteTransaction[]
+
+  @@index([electionId])
+  @@map("positions")
+}
+
+model Candidate {
+  id               String           @id @default(uuid()) @db.Uuid
+  electionId       String?          @map("election_id") @db.Uuid
+  positionId       String?          @map("position_id") @db.Uuid
+  userId           String           @map("user_id") @db.Uuid
+  fullName         String?          @map("full_name") @db.VarChar(150)
+  manifesto        String           @db.Text
+  profileImage     String?          @map("profile_image") @db.VarChar(500)
+  photoUrl         String?          @map("photo_url") @db.VarChar(500)
+  nominationStatus NominationStatus @default(PENDING) @map("nomination_status")
+  approvalStatus   ApprovalStatus   @default(PENDING) @map("approval_status")
+  status           CandidateStatus  @default(PENDING)
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  election         Election?        @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  position         Position?        @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  voteTransactions VoteTransaction[]
+  votes            Vote[]           @relation("CandidateVotes")
+  voteReceipts     VoteReceipt[]
+
+  @@unique([positionId, userId])
+  @@index([positionId, status])
+  @@index([electionId])
+  @@index([userId])
+  @@map("candidates")
+}
+
+model Vote {
+  id                      String    @id @default(uuid()) @db.Uuid
+  electionId              String    @map("election_id") @db.Uuid
+  candidateId             String    @map("candidate_id") @db.Uuid
+  voterId                 String    @map("voter_id") @db.Uuid
+  transactionReceipt      String    @map("transaction_receipt") @db.VarChar(255)
+  blockchainTransactionId String?   @map("blockchain_transaction_id") @db.VarChar(255)
+  voteTimestamp           DateTime  @default(now()) @map("vote_timestamp") @db.Timestamptz
+  createdAt               DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt               DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  election                Election  @relation("ElectionVotes", fields: [electionId], references: [id], onDelete: Restrict)
+  candidate               Candidate @relation("CandidateVotes", fields: [candidateId], references: [id], onDelete: Restrict)
+  voter                   User      @relation("UserVotes", fields: [voterId], references: [id], onDelete: Restrict)
+
+  @@unique([electionId, voterId])
+  @@index([electionId])
+  @@index([candidateId])
+  @@index([voterId])
+  @@index([electionId, candidateId])
+  @@index([transactionReceipt])
+  @@map("votes")
+}
+
+model VoterRegistry {
+  id         String   @id @default(uuid()) @db.Uuid
+  electionId String   @map("election_id") @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  hasVoted   Boolean  @default(false) @map("has_voted")
+  votedAt    DateTime? @map("voted_at") @db.Timestamptz
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  election   Election @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([electionId, userId])
+  @@index([electionId, hasVoted])
+  @@map("voter_registries")
+}
+
+model VoteBlock {
+  id           BigInt            @id @default(autoincrement())
+  previousHash String            @map("previous_hash") @db.VarChar(64)
+  hash         String            @unique @db.VarChar(64)
+  nonce        Int               @default(0)
+  timestamp    BigInt
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz
+
+  transactions VoteTransaction[]
+
+  @@index([hash])
+  @@index([timestamp])
+  @@map("vote_blocks")
+}
+
+model VoteTransaction {
+  id          String    @id @default(uuid()) @db.Uuid
+  blockId     BigInt    @map("block_id")
+  electionId  String    @map("election_id") @db.Uuid
+  positionId  String    @map("position_id") @db.Uuid
+  candidateId String    @map("candidate_id") @db.Uuid
+  voteHash    String    @map("vote_hash") @db.VarChar(64)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  block       VoteBlock @relation(fields: [blockId], references: [id], onDelete: Restrict)
+  election    Election  @relation(fields: [electionId], references: [id], onDelete: Restrict)
+  position    Position  @relation(fields: [positionId], references: [id], onDelete: Restrict)
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Restrict)
+
+  @@index([blockId])
+  @@index([electionId, positionId, candidateId])
+  @@map("vote_transactions")
+}
+
+model VoteReceipt {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  electionId    String    @map("election_id") @db.Uuid
+  candidateId   String?   @map("candidate_id") @db.Uuid
+  receiptCode   String    @unique @map("receipt_code") @db.VarChar(64)
+  receiptHash   String?   @map("receipt_hash") @db.VarChar(64)
+  voteTimestamp DateTime  @default(now()) @map("vote_timestamp") @db.Timestamptz
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  election      Election  @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  candidate     Candidate? @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@unique([electionId, userId])
+  @@index([receiptCode])
+  @@index([receiptHash])
+  @@map("vote_receipts")
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  title     String           @db.VarChar(150)
+  message   String           @db.Text
+  type      NotificationType @default(SYSTEM_ALERT)
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @map("user_id") @db.Uuid
+  action     String   @db.VarChar(100)
+  entityType String   @map("entity_type") @db.VarChar(50)
+  entityId   String?  @map("entity_id") @db.VarChar(100)
+  ipAddress  String?  @map("ip_address") @db.VarChar(45)
+  userAgent  String?  @map("user_agent") @db.VarChar(255)
+  details    Json?
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, action])
+  @@index([createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  token     String   @unique @db.VarChar(500)
+  userId    String   @map("user_id") @db.Uuid
+  expiresAt DateTime @map("expires_at") @db.Timestamptz
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}

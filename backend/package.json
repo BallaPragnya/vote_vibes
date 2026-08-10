@@ -1,0 +1,49 @@
+{
+  "name": "votevibes-backend",
+  "version": "1.0.0",
+  "description": "VoteVibes Backend API - Secure College Election Management System",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "node --test --test-concurrency=1 tests/**/*.test.js",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "prisma db seed",
+    "prisma:studio": "prisma studio",
+    "generate-secrets": "node scripts/generate-secrets.js"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "keywords": [
+    "express",
+    "prisma",
+    "postgresql",
+    "votevibes",
+    "blockchain",
+    "voting"
+  ],
+  "author": "VoteVibes Team",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.3.1",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.6.2",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.10.0",
+    "multer": "^2.2.0",
+    "pdfkit": "^0.19.1",
+    "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9",
+    "prisma": "^6.3.1"
+  }
+}

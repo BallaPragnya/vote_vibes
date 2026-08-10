@@ -1,0 +1,12 @@
+# Repository placement: .github/ISSUE_TEMPLATE/config.yml
+# Controls the "New issue" chooser screen.
+
+# Force every issue through one of the three templates — no blank issues.
+blank_issues_enabled: false
+
+# Optional: point contributors at the contributing guide instead of opening
+# a blank issue for process questions.
+contact_links:
+  - name: Contributing & Code Review Standards
+    url: https://github.com/BallaPragnya/vote_vibes/blob/develop/CONTRIBUTING.md
+    about: How to name branches, open pull requests, and get a change reviewed and merged.
