@@ -5,6 +5,7 @@ import prisma from '../config/prisma.js';
 import { generateVoteReceiptPayload } from '../utils/receiptGenerator.js';
 import blockchainIntegrationService from './blockchainIntegration.service.js';
 import verifyVoteIntegrity from '../validators/voteIntegrity.validator.js';
+import resultCalculationService from './resultCalculation.service.js';
 
 export class VoteService {
   /**
@@ -362,35 +363,7 @@ export class VoteService {
    * Get election voting results
    */
   async getElectionResults(electionId, currentUser = {}) {
-    if (!electionId) {
-      throw new AppError('Election ID is required.', 400, 'ValidationError');
-    }
-
-    const election = await prisma.election.findUnique({
-      where: { id: electionId },
-    });
-
-    if (!election) {
-      throw new AppError(`Election with ID '${electionId}' not found.`, 404, 'NotFoundError');
-    }
-
-    const isAuthorizedRole = ['ADMIN', 'SUPER_ADMIN', 'ELECTION_COMMISSION'].includes(currentUser.role);
-    if (election.status !== 'COMPLETED' && !isAuthorizedRole) {
-      throw new AppError(
-        `Election results are hidden while election status is '${election.status}'. Results will be available once completed.`,
-        403,
-        'ForbiddenError'
-      );
-    }
-
-    const results = await this.voteRepository.getElectionResults(electionId);
-
-    return {
-      electionId: election.id,
-      electionTitle: election.title,
-      status: election.status,
-      results,
-    };
+    return resultCalculationService.generateElectionResults(electionId, currentUser);
   }
 }
 
