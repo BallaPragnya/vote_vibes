@@ -15,6 +15,10 @@ if (!fs.existsSync(docsDir)) {
   fs.mkdirSync(docsDir, { recursive: true });
 }
 
+// Allowed extensions map
+const ALLOWED_IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
+const ALLOWED_DOC_EXTENSIONS = new Set(['.pdf']);
+
 // Multer disk storage configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -27,28 +31,38 @@ const storage = multer.diskStorage({
     }
   },
   filename: (req, file, cb) => {
+    // Cryptographically safe random filename generation to prevent predictable path traversal
+    const safePrefix = file.fieldname.replace(/[^a-zA-Z0-9]/g, '');
     const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
     const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+    cb(null, `${safePrefix}-${uniqueSuffix}${ext}`);
   },
 });
 
-// File type validator
+// File type & security extension validator
 const fileFilter = (req, file, cb) => {
-  const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-  const allowedDocTypes = ['application/pdf'];
+  const allowedImageMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  const allowedDocMimeTypes = ['application/pdf'];
+
+  const originalName = file.originalname || '';
+  const ext = path.extname(originalName).toLowerCase();
+
+  // Reject path traversal attempts or embedded null bytes
+  if (originalName.includes('\0') || originalName.includes('..') || originalName.includes('/') || originalName.includes('\\')) {
+    return cb(new AppError('Malicious file name detected.', 400, 'UploadError'), false);
+  }
 
   if (file.fieldname === 'profileImage' || file.fieldname === 'photoUrl') {
-    if (allowedImageTypes.includes(file.mimetype)) {
+    if (allowedImageMimeTypes.includes(file.mimetype) && ALLOWED_IMAGE_EXTENSIONS.has(ext)) {
       cb(null, true);
     } else {
-      cb(new AppError('Invalid image file type. Only JPEG, JPG, PNG, and WEBP images are allowed.', 400, 'UploadError'), false);
+      cb(new AppError('Invalid image file. Only JPEG, JPG, PNG, and WEBP images with valid extensions are allowed.', 400, 'UploadError'), false);
     }
   } else if (file.fieldname === 'manifestoDocument' || file.fieldname === 'manifestoFile') {
-    if (allowedDocTypes.includes(file.mimetype)) {
+    if (allowedDocMimeTypes.includes(file.mimetype) && ALLOWED_DOC_EXTENSIONS.has(ext)) {
       cb(null, true);
     } else {
-      cb(new AppError('Invalid document file type. Only PDF documents are allowed.', 400, 'UploadError'), false);
+      cb(new AppError('Invalid document file. Only PDF documents with valid extensions are allowed.', 400, 'UploadError'), false);
     }
   } else {
     cb(new AppError(`Unexpected field '${file.fieldname}' for file upload.`, 400, 'UploadError'), false);

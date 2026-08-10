@@ -59,14 +59,26 @@ export const verifyVoteIntegrity = async ({
     throw new AppError('Candidate ID must be a valid UUID.', 400, 'ValidationError');
   }
 
-  // Step 2: Election exists
-  const election = await prisma.election.findUnique({
-    where: { id: electionId.trim() },
-    include: {
-      departments: { select: { departmentId: true } },
-    },
-  });
+  // Batch database lookups using Promise.all to reduce latency & DB roundtrips
+  const [election, candidate, user, hasVoted] = await Promise.all([
+    prisma.election.findUnique({
+      where: { id: electionId.trim() },
+      include: {
+        departments: { select: { departmentId: true } },
+      },
+    }),
+    prisma.candidate.findUnique({
+      where: { id: candidateId.trim() },
+      include: { user: { select: { name: true } } },
+    }),
+    prisma.user.findUnique({
+      where: { id: userId.trim() },
+      select: { id: true, status: true, departmentId: true },
+    }),
+    voteRepository.hasAlreadyVoted(userId.trim(), electionId.trim()),
+  ]);
 
+  // Step 2: Validate Election exists
   if (!election) {
     throw new AppError(`Election with ID '${electionId}' does not exist.`, 404, 'NotFoundError');
   }
@@ -89,12 +101,7 @@ export const verifyVoteIntegrity = async ({
     throw new AppError('Voting has ended for this election.', 400, 'InvalidStateError');
   }
 
-  // Step 4: Candidate exists
-  const candidate = await prisma.candidate.findUnique({
-    where: { id: candidateId.trim() },
-    include: { user: { select: { name: true } } },
-  });
-
+  // Step 4: Validate Candidate exists
   if (!candidate) {
     throw new AppError(`Candidate with ID '${candidateId}' does not exist.`, 404, 'NotFoundError');
   }
@@ -121,11 +128,6 @@ export const verifyVoteIntegrity = async ({
   }
 
   // Step 6: User is eligible to vote
-  const user = await prisma.user.findUnique({
-    where: { id: userId.trim() },
-    select: { id: true, status: true, departmentId: true },
-  });
-
   if (!user) {
     throw new AppError(`Voter with ID '${userId}' does not exist.`, 404, 'NotFoundError');
   }
@@ -146,7 +148,6 @@ export const verifyVoteIntegrity = async ({
   }
 
   // Step 7: User has not already voted
-  const hasVoted = await voteRepository.hasAlreadyVoted(user.id, election.id);
   if (hasVoted) {
     throw new AppError(
       'You have already cast your vote in this election. Duplicate voting is strictly prohibited.',

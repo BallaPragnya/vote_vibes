@@ -153,6 +153,7 @@ model ElectionDepartment {
   department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
   @@unique([electionId, departmentId])
+  @@index([departmentId])
   @@map("election_departments")
 }
 
@@ -169,6 +170,7 @@ model Position {
   candidates   Candidate[]
   voteTransactions VoteTransaction[]
 
+  @@index([electionId])
   @@map("positions")
 }
 
@@ -197,6 +199,7 @@ model Candidate {
   @@unique([positionId, userId])
   @@index([positionId, status])
   @@index([electionId])
+  @@index([userId])
   @@map("candidates")
 }
 
@@ -219,6 +222,7 @@ model Vote {
   @@index([electionId])
   @@index([candidateId])
   @@index([voterId])
+  @@index([electionId, candidateId])
   @@index([transactionReceipt])
   @@map("votes")
 }
@@ -250,6 +254,7 @@ model VoteBlock {
   transactions VoteTransaction[]
 
   @@index([hash])
+  @@index([timestamp])
   @@map("vote_blocks")
 }
 
@@ -336,5 +341,6 @@ model RefreshToken {
 
   @@index([userId])
   @@index([token])
+  @@index([expiresAt])
   @@map("refresh_tokens")
 }
