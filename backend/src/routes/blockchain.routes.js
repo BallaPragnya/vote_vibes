@@ -4,13 +4,14 @@ import {
   getChainIntegrity,
   getBlockByIdentifier,
   verifyPublicReceipt,
+  handleStressTest,
+  handleSimulateTamper,
+  exportJsonLedger,
+  exportCsvLedger,
+  exportElectionProof,
 } from '../controllers/blockchain.controller.js';
-import { verificationRateLimiter } from '../middleware/rateLimiter.js';
-import config from '../config/env.js';
 
 const router = Router();
-
-const applyVerificationLimiter = config.isTest ? (req, res, next) => next() : verificationRateLimiter;
 
 /**
  * GET /api/blockchain
@@ -25,6 +26,36 @@ router.get('/', getLedgerOverview);
 router.get('/integrity', getChainIntegrity);
 
 /**
+ * POST /api/blockchain/stress-test
+ * Runs blockchain stress testing & TPS benchmarking
+ */
+router.post('/stress-test', handleStressTest);
+
+/**
+ * POST /api/blockchain/simulate-tamper
+ * Simulates block tampering and demonstrates real-time detection
+ */
+router.post('/simulate-tamper', handleSimulateTamper);
+
+/**
+ * GET /api/blockchain/export/json
+ * Download ledger JSON export
+ */
+router.get('/export/json', exportJsonLedger);
+
+/**
+ * GET /api/blockchain/export/csv
+ * Download ledger CSV audit log
+ */
+router.get('/export/csv', exportCsvLedger);
+
+/**
+ * GET /api/blockchain/export/proof/:electionId
+ * Download cryptographic proof package for an election
+ */
+router.get('/export/proof/:electionId', exportElectionProof);
+
+/**
  * GET /api/blockchain/blocks/:identifier
  * Retrieve block details by index or hash
  */
@@ -34,6 +65,6 @@ router.get('/blocks/:identifier', getBlockByIdentifier);
  * POST /api/blockchain/verify-receipt
  * Public cryptographic receipt verification tool
  */
-router.post('/verify-receipt', applyVerificationLimiter, verifyPublicReceipt);
+router.post('/verify-receipt', verifyPublicReceipt);
 
 export default router;

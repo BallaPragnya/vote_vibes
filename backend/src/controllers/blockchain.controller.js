@@ -1,13 +1,13 @@
 import { blockchainExplorerService } from '../services/blockchainExplorer.service.js';
+import { runBlockchainStressTest } from '../blockchain/stressTester.js';
+import { simulateTamperAttempt } from '../blockchain/tamperSimulator.js';
+import { exportLedgerAsJson, exportLedgerAsCsv, generateCryptographicProofPackage } from '../blockchain/ledgerExporter.js';
 
 /**
- * Controller for Blockchain Explorer, Dynamic Chain Integrity Meter, and Public Receipt Verification
+ * Controller for Blockchain Explorer, Dynamic Chain Integrity Meter, Public Verification, 
+ * Stress Testing, Tamper Simulation, and Ledger Export (Phases 1-7)
  */
 
-/**
- * GET /api/blockchain
- * Returns complete ledger overview, metrics, and chain integrity status
- */
 export const getLedgerOverview = (req, res, next) => {
   try {
     const { action, electionId, search } = req.query;
@@ -36,10 +36,6 @@ export const getLedgerOverview = (req, res, next) => {
   }
 };
 
-/**
- * GET /api/blockchain/integrity
- * Returns real-time dynamic chain integrity meter audit results
- */
 export const getChainIntegrity = (req, res, next) => {
   try {
     const auditReport = blockchainExplorerService.performFullChainAudit();
@@ -53,10 +49,6 @@ export const getChainIntegrity = (req, res, next) => {
   }
 };
 
-/**
- * GET /api/blockchain/blocks/:identifier
- * Returns a specific block by index or hash
- */
 export const getBlockByIdentifier = (req, res, next) => {
   try {
     const { identifier } = req.params;
@@ -79,10 +71,6 @@ export const getBlockByIdentifier = (req, res, next) => {
   }
 };
 
-/**
- * POST /api/blockchain/verify-receipt
- * Public endpoint to verify a cryptographic vote receipt
- */
 export const verifyPublicReceipt = (req, res, next) => {
   try {
     const receiptData = req.body;
@@ -106,9 +94,113 @@ export const verifyPublicReceipt = (req, res, next) => {
   }
 };
 
+/**
+ * POST /api/blockchain/stress-test
+ * Runs an on-demand blockchain stress test & performance benchmark
+ */
+export const handleStressTest = (req, res, next) => {
+  try {
+    const { blockCount = 100, electionId = 'elec_stress_test_2026' } = req.body || {};
+    const count = Math.min(Math.max(10, Number(blockCount)), 1000);
+
+    const benchmarkReport = runBlockchainStressTest({
+      blockCount: count,
+      electionId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `Blockchain stress test completed successfully (${count} blocks generated).`,
+      data: benchmarkReport,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /api/blockchain/simulate-tamper
+ * Simulates block tampering and demonstrates real-time detection
+ */
+export const handleSimulateTamper = (req, res, next) => {
+  try {
+    const { targetBlockIndex = 1, tamperType = 'DATA_MUTATION' } = req.body || {};
+    const chain = blockchainExplorerService.store.getChain();
+
+    const tamperResult = simulateTamperAttempt(chain, Number(targetBlockIndex), tamperType);
+
+    return res.status(200).json({
+      success: true,
+      message: tamperResult.auditReport.message,
+      data: tamperResult,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/blockchain/export/json
+ * Downloads complete blockchain ledger as JSON
+ */
+export const exportJsonLedger = (req, res, next) => {
+  try {
+    const chain = blockchainExplorerService.store.getChain();
+    const jsonPackage = exportLedgerAsJson(chain);
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', 'attachment; filename=votevibes_blockchain_ledger.json');
+    return res.status(200).send(JSON.stringify(jsonPackage, null, 2));
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/blockchain/export/csv
+ * Downloads blockchain ledger audit log as CSV
+ */
+export const exportCsvLedger = (req, res, next) => {
+  try {
+    const chain = blockchainExplorerService.store.getChain();
+    const csvContent = exportLedgerAsCsv(chain);
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=votevibes_blockchain_ledger.csv');
+    return res.status(200).send(csvContent);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/blockchain/export/proof/:electionId
+ * Downloads cryptographic proof package for an election
+ */
+export const exportElectionProof = (req, res, next) => {
+  try {
+    const { electionId } = req.params;
+    const chain = blockchainExplorerService.store.getChain();
+    const proofPackage = generateCryptographicProofPackage(chain, electionId);
+
+    return res.status(200).json({
+      success: true,
+      message: `Cryptographic proof package for election '${electionId}' generated.`,
+      data: proofPackage,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   getLedgerOverview,
   getChainIntegrity,
   getBlockByIdentifier,
   verifyPublicReceipt,
+  handleStressTest,
+  handleSimulateTamper,
+  exportJsonLedger,
+  exportCsvLedger,
+  exportElectionProof,
 };
