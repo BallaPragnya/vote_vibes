@@ -29,6 +29,22 @@ import voteVerification, {
   verifyVoteReceipt,
   verifyVoterParticipation,
 } from './voteVerification.js';
+import cryptoOptimizer, {
+  fastCalculateHash,
+  batchVerifyBlocks,
+  clearHashCache,
+} from './cryptoOptimizer.js';
+import stressTester, {
+  runBlockchainStressTest,
+} from './stressTester.js';
+import tamperSimulator, {
+  simulateTamperAttempt,
+} from './tamperSimulator.js';
+import ledgerExporter, {
+  exportLedgerAsJson,
+  exportLedgerAsCsv,
+  generateCryptographicProofPackage,
+} from './ledgerExporter.js';
 
 export {
   calculateHash,
@@ -57,4 +73,16 @@ export {
   voteVerification,
   verifyVoteReceipt,
   verifyVoterParticipation,
+  cryptoOptimizer,
+  fastCalculateHash,
+  batchVerifyBlocks,
+  clearHashCache,
+  stressTester,
+  runBlockchainStressTest,
+  tamperSimulator,
+  simulateTamperAttempt,
+  ledgerExporter,
+  exportLedgerAsJson,
+  exportLedgerAsCsv,
+  generateCryptographicProofPackage,
 };

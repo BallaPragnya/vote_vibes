@@ -1,13 +1,57 @@
-import React from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
 
 /**
- * Dynamic Chain Integrity Meter Component
- * Renders real-time blockchain integrity status, score meter, and ledger metrics summary.
+ * Dynamic Chain Integrity Meter & Performance Benchmark Control Component (Phase 7)
+ * Renders real-time blockchain integrity status, health meter, metrics, 
+ * stress test execution, tamper simulation demo, and ledger export buttons.
  */
 export default function ChainIntegrityMeter({ integrity, metrics, onRefresh }) {
   const isChainValid = integrity?.isChainValid ?? true;
   const score = integrity?.integrityScore ?? 100;
   const statusMessage = integrity?.message || 'All block hashes and link sequences verified successfully.';
+
+  const [stressLoading, setStressLoading] = useState(false);
+  const [stressResult, setStressResult] = useState(null);
+
+  const [tamperLoading, setTamperLoading] = useState(false);
+  const [tamperResult, setTamperResult] = useState(null);
+
+  const handleRunStressTest = async () => {
+    setStressLoading(true);
+    setStressResult(null);
+    try {
+      const res = await axios.post('/api/blockchain/stress-test', { blockCount: 100 });
+      setStressResult(res.data.data);
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      console.error('Stress test failed:', err);
+    } finally {
+      setStressLoading(false);
+    }
+  };
+
+  const handleSimulateTamper = async () => {
+    setTamperLoading(true);
+    setTamperResult(null);
+    try {
+      const res = await axios.post('/api/blockchain/simulate-tamper', { targetBlockIndex: 1, tamperType: 'DATA_MUTATION' });
+      setTamperResult(res.data.data);
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      console.error('Tamper simulation failed:', err);
+    } finally {
+      setTamperLoading(false);
+    }
+  };
+
+  const handleExportJson = () => {
+    window.open('/api/blockchain/export/json', '_blank');
+  };
+
+  const handleExportCsv = () => {
+    window.open('/api/blockchain/export/csv', '_blank');
+  };
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl mb-8">
@@ -29,17 +73,37 @@ export default function ChainIntegrityMeter({ integrity, metrics, onRefresh }) {
           <p className="text-sm text-slate-400 mt-1">{statusMessage}</p>
         </div>
 
-        {onRefresh && (
+        {/* Action Controls & Export Buttons */}
+        <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={onRefresh}
-            className="px-4 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition-colors border border-slate-700 flex items-center gap-2"
+            onClick={handleExportJson}
+            className="px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-indigo-300 rounded-lg transition-colors border border-slate-700"
+            title="Download full ledger JSON"
           >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Re-verify Chain Integrity
+            Export JSON
           </button>
-        )}
+          <button
+            onClick={handleExportCsv}
+            className="px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-sky-300 rounded-lg transition-colors border border-slate-700"
+            title="Download audit CSV"
+          >
+            Export CSV
+          </button>
+          <button
+            onClick={handleRunStressTest}
+            disabled={stressLoading}
+            className="px-3 py-1.5 text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors shadow"
+          >
+            {stressLoading ? 'Running Test...' : '⚡ Stress Test'}
+          </button>
+          <button
+            onClick={handleSimulateTamper}
+            disabled={tamperLoading}
+            className="px-3 py-1.5 text-xs font-medium bg-rose-600 hover:bg-rose-500 text-white rounded-lg transition-colors shadow"
+          >
+            {tamperLoading ? 'Simulating...' : '🚨 Simulate Tamper'}
+          </button>
+        </div>
       </div>
 
       {/* Health Score Meter Bar */}
@@ -57,6 +121,37 @@ export default function ChainIntegrityMeter({ integrity, metrics, onRefresh }) {
           ></div>
         </div>
       </div>
+
+      {/* Stress Test Results Banner */}
+      {stressResult && (
+        <div className="mt-4 p-4 rounded-lg bg-indigo-950/40 border border-indigo-500/30 text-indigo-200 text-xs font-mono">
+          <div className="flex justify-between items-center font-bold mb-2 text-indigo-300">
+            <span>⚡ STRESS TEST BENCHMARK COMPLETE</span>
+            <span>{stressResult.tps} TPS</span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[11px]">
+            <div>Blocks: {stressResult.totalBlocksGenerated}</div>
+            <div>Duration: {stressResult.totalDurationMs} ms</div>
+            <div>Avg Latency: {stressResult.avgBlockLatencyMs} ms</div>
+            <div>Heap Used: {stressResult.memoryUsageMb} MB</div>
+          </div>
+        </div>
+      )}
+
+      {/* Tamper Simulation Results Banner */}
+      {tamperResult && (
+        <div className="mt-4 p-4 rounded-lg bg-rose-950/40 border border-rose-500/30 text-rose-200 text-xs font-mono">
+          <div className="flex justify-between items-center font-bold mb-2 text-rose-300">
+            <span>🚨 TAMPER DETECTION DEMO OUTCOME</span>
+            <span>{tamperResult.detected ? 'TAMPER DETECTED ✅' : 'PASSED'}</span>
+          </div>
+          <p className="mb-2">{tamperResult.tamperDescription}</p>
+          <div className="space-y-1 text-[11px] bg-slate-950 p-2 rounded border border-slate-800">
+            <div className="text-slate-400">Original Hash: <span className="text-emerald-400">{tamperResult.originalState?.hash}</span></div>
+            <div className="text-slate-400">Tampered Payload: <span className="text-rose-400">{tamperResult.tamperedState?.data}</span></div>
+          </div>
+        </div>
+      )}
 
       {/* Ledger Metrics Dashboard */}
       {metrics && (
