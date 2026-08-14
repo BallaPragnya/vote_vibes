@@ -19,11 +19,11 @@
 
 | Test ID | Feature Description | Priority | PASS | FAIL | Bug Draft Ref / Remarks |
 | :--- | :--- | :---: | :---: | :---: | :--- |
-| `TC-P2-001` | Student User Registration (`/register`) | High | [ ] | [ ] | |
-| `TC-P2-002` | Duplicate Email Registration Check (409) | High | [ ] | [ ] | |
-| `TC-P2-003` | User Login & JWT Token Issuance (`/login`) | High | [ ] | [ ] | |
-| `TC-P2-004` | RBAC Protected Routes & Unauthorized Page (`/unauthorized`) | High | [ ] | [ ] | |
-| `TC-P2-005` | Password Hashing Verification (`bcrypt`) | High | [ ] | [ ] | |
+| `TC-P2-001` | Student User Registration (`/register`) | High | [x] | [ ] | |
+| `TC-P2-002` | Duplicate Email Registration Check (409) | High | [x] | [ ] | |
+| `TC-P2-003` | User Login & JWT Token Issuance (`/login`) | High | [x] | [ ] | |
+| `TC-P2-004` | RBAC Protected Routes & Unauthorized Page (`/unauthorized`) | High | [x] | [ ] | |
+| `TC-P2-005` | Password Hashing Verification (`bcrypt`) | High | [x] | [ ] | |
 | `TC-P2-006` | Voter Identity Abstraction & Hash Anonymizer | High | [ ] | [ ] | |
 
 ---
