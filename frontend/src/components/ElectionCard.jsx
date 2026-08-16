@@ -8,16 +8,19 @@ export default function ElectionCard({ election, onDelete }) {
   const { hasRole } = useAuth();
   const isAdmin = hasRole(['ADMIN', 'SUPER_ADMIN', 'ELECTION_COMMISSION']);
 
-  const startDateFormatted = election?.startDate
-    ? new Date(election.startDate).toLocaleDateString(undefined, {
+  const startVal = election?.startDate || election?.startTime;
+  const endVal = election?.endDate || election?.endTime;
+
+  const startDateFormatted = startVal && !isNaN(new Date(startVal).getTime())
+    ? new Date(startVal).toLocaleDateString(undefined, {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
       })
     : 'N/A';
 
-  const endDateFormatted = election?.endDate
-    ? new Date(election.endDate).toLocaleDateString(undefined, {
+  const endDateFormatted = endVal && !isNaN(new Date(endVal).getTime())
+    ? new Date(endVal).toLocaleDateString(undefined, {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
@@ -84,7 +87,7 @@ export default function ElectionCard({ election, onDelete }) {
           {isActive && (
             <Link
               to={`/elections/${election?.id}/vote`}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold shadow-md shadow-indigo-500/20 transition-all"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold shadow-md shadow-indigo-500/20 transition-all transform active:scale-95"
             >
               <Vote className="w-3 h-3" />
               <span>Cast Vote</span>

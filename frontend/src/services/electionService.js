@@ -49,6 +49,13 @@ export const electionService = {
   },
 
   /**
+   * Alias for changeStatus
+   */
+  async updateElectionStatus(id, status) {
+    return this.changeStatus(id, status);
+  },
+
+  /**
    * Delete an election (DRAFT or CANCELLED status only)
    * @param {string} id
    */
