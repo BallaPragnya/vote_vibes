@@ -1,14 +1,13 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
 import { 
   Settings, 
   Users, 
   Layers, 
-  ShieldAlert, 
   PlusCircle, 
   Sparkles,
   ArrowRight,
-  Database,
   CheckCircle2
 } from 'lucide-react';
 
@@ -51,6 +50,7 @@ export default function AdminDashboardPage() {
       {/* Admin Modules Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
+        {/* Module 1: Create New Election */}
         <div className="bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 rounded-2xl p-6 backdrop-blur-md transition-all duration-300 flex flex-col justify-between group">
           <div>
             <div className="p-3 bg-purple-500/10 rounded-xl w-fit mb-4 text-purple-400">
@@ -64,12 +64,17 @@ export default function AdminDashboardPage() {
           
           <div className="mt-6 pt-4 border-t border-slate-800/60 flex items-center justify-between">
             <span className="text-[11px] text-purple-400 font-medium">Phase 3 Backend Ready</span>
-            <button className="text-xs font-semibold text-purple-300 group-hover:text-white flex items-center gap-1">
-              Create Election <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-            </button>
+            <Link
+              to="/admin/elections/create"
+              className="text-xs font-semibold text-purple-300 hover:text-white group-hover:translate-x-0.5 transition-all flex items-center gap-1"
+            >
+              <span>Create Election</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </div>
         </div>
 
+        {/* Module 2: Candidate Management */}
         <div className="bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 rounded-2xl p-6 backdrop-blur-md transition-all duration-300 flex flex-col justify-between group">
           <div>
             <div className="p-3 bg-purple-500/10 rounded-xl w-fit mb-4 text-purple-400">
@@ -83,12 +88,17 @@ export default function AdminDashboardPage() {
           
           <div className="mt-6 pt-4 border-t border-slate-800/60 flex items-center justify-between">
             <span className="text-[11px] text-purple-400 font-medium">RBAC Admin Guard</span>
-            <button className="text-xs font-semibold text-purple-300 group-hover:text-white flex items-center gap-1">
-              Manage Nominations <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-            </button>
+            <Link
+              to="/admin/candidates"
+              className="text-xs font-semibold text-purple-300 hover:text-white group-hover:translate-x-0.5 transition-all flex items-center gap-1"
+            >
+              <span>Manage Candidates</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </div>
         </div>
 
+        {/* Module 3: Blockchain Ledger Audit */}
         <div className="bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 rounded-2xl p-6 backdrop-blur-md transition-all duration-300 flex flex-col justify-between group">
           <div>
             <div className="p-3 bg-purple-500/10 rounded-xl w-fit mb-4 text-purple-400">
@@ -104,9 +114,13 @@ export default function AdminDashboardPage() {
             <span className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5" /> Ledger Valid
             </span>
-            <button className="text-xs font-semibold text-purple-300 group-hover:text-white flex items-center gap-1">
-              Run Validation <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-            </button>
+            <Link
+              to="/audit"
+              className="text-xs font-semibold text-purple-300 hover:text-white group-hover:translate-x-0.5 transition-all flex items-center gap-1"
+            >
+              <span>Run Validation</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </div>
         </div>
 

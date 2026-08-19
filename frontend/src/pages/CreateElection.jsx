@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import electionService from '../services/electionService';
-import { PlusCircle, ArrowLeft, AlertCircle, CheckCircle2, Calendar, FileText } from 'lucide-react';
+import { PlusCircle, ArrowLeft, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function CreateElection() {
   const navigate = useNavigate();
@@ -57,11 +57,16 @@ export default function CreateElection() {
 
     setIsSubmitting(true);
     try {
+      const startIso = start.toISOString();
+      const endIso = end.toISOString();
+
       const payload = {
         title: formData.title.trim(),
         description: formData.description.trim() || undefined,
-        startDate: new Date(formData.startDate).toISOString(),
-        endDate: new Date(formData.endDate).toISOString(),
+        startDate: startIso,
+        endDate: endIso,
+        startTime: startIso,
+        endTime: endIso,
         isDepartmentRestricted: formData.isDepartmentRestricted,
       };
 
@@ -75,7 +80,7 @@ export default function CreateElection() {
       }
     } catch (err) {
       setErrorMsg(err.response?.data?.message || 'Failed to create election.');
-    } fontFinally: {
+    } finally {
       setIsSubmitting(false);
     }
   };

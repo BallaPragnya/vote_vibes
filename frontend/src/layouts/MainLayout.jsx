@@ -26,8 +26,6 @@ export default function MainLayout({ children }) {
               <Vote className="w-3.5 h-3.5 text-indigo-400" />
             </div>
             <span className="font-semibold text-slate-300">VoteVibes Platform</span>
-            <span>•</span>
-            <span className="text-indigo-400 font-medium">Phase 2 Branch: archananewphase2</span>
           </div>
 
           <div className="flex items-center gap-4 text-slate-400">

@@ -18,7 +18,8 @@ import {
   Layers,
   Award,
   Vote,
-  BarChart3
+  BarChart3,
+  AlertCircle
 } from 'lucide-react';
 
 export default function ElectionDetails() {
@@ -32,6 +33,7 @@ export default function ElectionDetails() {
   const [error, setError] = useState('');
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+  const [statusErrorMsg, setStatusErrorMsg] = useState('');
 
   // Delete modal state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -57,13 +59,21 @@ export default function ElectionDetails() {
   const handleStatusTransition = async (newStatus) => {
     setStatusUpdating(true);
     setSuccessMsg('');
+    setStatusErrorMsg('');
+
     try {
-      await electionService.updateElectionStatus(id, newStatus);
+      const response = await electionService.changeStatus(id, newStatus);
+      const updatedData = response?.data || response;
+
       setSuccessMsg(`Election status updated to '${newStatus}' successfully!`);
+      if (updatedData) {
+        setElection((prev) => ({ ...prev, ...updatedData, status: newStatus }));
+      }
       fetchElection();
       setTimeout(() => setSuccessMsg(''), 4000);
     } catch (err) {
-      alert(err.response?.data?.message || `Failed to update status to '${newStatus}'.`);
+      setStatusErrorMsg(err.response?.data?.message || `Unable to change election status to '${newStatus}'. Please try again.`);
+      setTimeout(() => setStatusErrorMsg(''), 5000);
     } finally {
       setStatusUpdating(false);
     }
@@ -76,7 +86,7 @@ export default function ElectionDetails() {
       setDeleteModalOpen(false);
       navigate('/elections');
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete election.');
+      setStatusErrorMsg(err.response?.data?.message || 'Failed to delete election.');
     } finally {
       setIsDeleting(false);
     }
@@ -84,7 +94,7 @@ export default function ElectionDetails() {
 
   if (isLoading) {
     return (
-      <div className="py-20 text-center space-y-3">
+      <div className="py-20 text-center space-y-3 max-w-4xl mx-auto">
         <div className="w-10 h-10 border-3 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto" />
         <p className="text-xs text-slate-400 font-medium">Loading election schedule & candidates...</p>
       </div>
@@ -115,6 +125,18 @@ export default function ElectionDetails() {
   const isActive = election?.status === 'ACTIVE';
   const isCompleted = election?.status === 'COMPLETED';
 
+  // Date Parsing Resolution for startTime / startDate
+  const startRaw = election?.startDate || election?.startTime;
+  const endRaw = election?.endDate || election?.endTime;
+
+  const startDateFormatted = startRaw && !isNaN(new Date(startRaw).getTime())
+    ? new Date(startRaw).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+    : 'Schedule Not Set';
+
+  const endDateFormatted = endRaw && !isNaN(new Date(endRaw).getTime())
+    ? new Date(endRaw).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+    : 'Schedule Not Set';
+
   return (
     <div className="max-w-4xl mx-auto space-y-8 py-4">
       <div>
@@ -136,7 +158,7 @@ export default function ElectionDetails() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center gap-3 mb-2 flex-wrap">
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{election.title}</h1>
               <ElectionStatusBadge status={election.status} />
             </div>
@@ -189,11 +211,18 @@ export default function ElectionDetails() {
           </div>
         </div>
 
-        {/* Success Message */}
+        {/* Feedback Alerts */}
         {successMsg && (
-          <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-center gap-2">
+          <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-center gap-2 animate-fadeIn">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>{successMsg}</span>
+          </div>
+        )}
+
+        {statusErrorMsg && (
+          <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2 animate-fadeIn">
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>{statusErrorMsg}</span>
           </div>
         )}
 
@@ -211,7 +240,7 @@ export default function ElectionDetails() {
             <div>
               <span className="text-[10px] text-slate-500 uppercase font-semibold block">Start Schedule</span>
               <span className="text-xs font-semibold text-slate-200">
-                {new Date(election.startDate).toLocaleString()}
+                {startDateFormatted}
               </span>
             </div>
           </div>
@@ -223,7 +252,7 @@ export default function ElectionDetails() {
             <div>
               <span className="text-[10px] text-slate-500 uppercase font-semibold block">End Schedule</span>
               <span className="text-xs font-semibold text-slate-200">
-                {new Date(election.endDate).toLocaleString()}
+                {endDateFormatted}
               </span>
             </div>
           </div>
@@ -241,7 +270,7 @@ export default function ElectionDetails() {
                 <button
                   disabled={statusUpdating}
                   onClick={() => handleStatusTransition('UPCOMING')}
-                  className="px-3.5 py-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/20 text-xs font-semibold transition-colors flex items-center gap-1.5"
+                  className="px-3.5 py-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/20 text-xs font-semibold transition-colors flex items-center gap-1.5 disabled:opacity-50"
                 >
                   <Clock className="w-3.5 h-3.5" />
                   <span>Publish as UPCOMING</span>
@@ -252,7 +281,7 @@ export default function ElectionDetails() {
                 <button
                   disabled={statusUpdating}
                   onClick={() => handleStatusTransition('ACTIVE')}
-                  className="px-3.5 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/20 text-xs font-semibold transition-colors flex items-center gap-1.5"
+                  className="px-3.5 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/20 text-xs font-semibold transition-colors flex items-center gap-1.5 disabled:opacity-50"
                 >
                   <Play className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Open Voting (ACTIVE)</span>
@@ -263,7 +292,7 @@ export default function ElectionDetails() {
                 <button
                   disabled={statusUpdating}
                   onClick={() => handleStatusTransition('COMPLETED')}
-                  className="px-3.5 py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/20 text-xs font-semibold transition-colors flex items-center gap-1.5"
+                  className="px-3.5 py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/20 text-xs font-semibold transition-colors flex items-center gap-1.5 disabled:opacity-50"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>Close Voting (COMPLETED)</span>
@@ -274,7 +303,7 @@ export default function ElectionDetails() {
                 <button
                   disabled={statusUpdating}
                   onClick={() => handleStatusTransition('CANCELLED')}
-                  className="px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 text-xs font-semibold transition-colors flex items-center gap-1.5"
+                  className="px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 text-xs font-semibold transition-colors flex items-center gap-1.5 disabled:opacity-50"
                 >
                   <XCircle className="w-3.5 h-3.5" />
                   <span>Cancel Election</span>

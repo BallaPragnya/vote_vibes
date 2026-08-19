@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
 import { 
   User, 
@@ -9,11 +10,11 @@ import {
   Clock, 
   ArrowRight,
   Sparkles,
-  FileText
+  BarChart3
 } from 'lucide-react';
 
 export default function VoterDashboardPage() {
-  const { user, role } = useAuth();
+  const { user } = useAuth();
 
   return (
     <div className="space-y-8 py-4">
@@ -108,9 +109,13 @@ export default function VoterDashboardPage() {
               <span className="text-[11px] text-indigo-400 font-medium flex items-center gap-1">
                 <Clock className="w-3 h-3" /> Elections Open
               </span>
-              <button className="text-xs font-semibold text-indigo-300 group-hover:text-white flex items-center gap-1">
-                Cast Vote <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </button>
+              <Link
+                to="/elections"
+                className="text-xs font-semibold text-indigo-300 hover:text-white group-hover:translate-x-0.5 transition-all flex items-center gap-1"
+              >
+                <span>View Elections</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </div>
           </div>
 
@@ -119,7 +124,7 @@ export default function VoterDashboardPage() {
               <div className="p-2.5 bg-violet-500/10 rounded-xl w-fit mb-3 text-violet-400 group-hover:bg-violet-500/20 transition-colors">
                 <Layers className="w-5 h-5" />
               </div>
-              <h4 className="font-semibold text-slate-100 text-sm mb-1">Blockchain Receipts</h4>
+              <h4 className="font-semibold text-slate-100 text-sm mb-1">Blockchain Audit & Receipts</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Verify your anonymized vote receipt against the SHA-256 block hash on the ledger.
               </p>
@@ -129,9 +134,13 @@ export default function VoterDashboardPage() {
               <span className="text-[11px] text-violet-400 font-medium flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Immutable Verification
               </span>
-              <button className="text-xs font-semibold text-violet-300 group-hover:text-white flex items-center gap-1">
-                Verify Receipt <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </button>
+              <Link
+                to="/audit"
+                className="text-xs font-semibold text-violet-300 hover:text-white group-hover:translate-x-0.5 transition-all flex items-center gap-1"
+              >
+                <span>Verify Receipt</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </div>
           </div>
 
