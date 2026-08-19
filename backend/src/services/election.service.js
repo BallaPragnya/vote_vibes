@@ -250,7 +250,16 @@ export class ElectionService {
       );
     }
 
-    const updatedElection = await this._updateRepoElection(id, { status: newStatus });
+    const updatePayload = { status: newStatus };
+    if (newStatus === 'ACTIVE') {
+      const now = new Date();
+      const currentStart = new Date(election.startTime || election.startDate || now);
+      if (currentStart > now) {
+        updatePayload.startTime = now;
+      }
+    }
+
+    const updatedElection = await this._updateRepoElection(id, updatePayload);
     return enrichWithComputedStatus(updatedElection);
   }
 
