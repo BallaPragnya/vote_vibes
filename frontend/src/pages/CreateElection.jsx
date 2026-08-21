@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import electionService from '../services/electionService';
-import { PlusCircle, ArrowLeft, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { PlusCircle, ArrowLeft, AlertCircle, CheckCircle2, Building2, HelpCircle } from 'lucide-react';
+
+const AVAILABLE_DEPARTMENTS = [
+  { id: 'dept-cse-01', code: 'CSE', name: 'Computer Science & Engineering' },
+  { id: 'dept-it-02', code: 'IT', name: 'Information Technology' },
+  { id: 'dept-ece-03', code: 'ECE', name: 'Electronics & Communication' },
+  { id: 'dept-me-04', code: 'ME', name: 'Mechanical Engineering' },
+  { id: 'dept-ee-05', code: 'EE', name: 'Electrical Engineering' },
+  { id: 'dept-mba-06', code: 'MBA', name: 'School of Management Studies' },
+];
 
 export default function CreateElection() {
   const navigate = useNavigate();
@@ -14,6 +23,7 @@ export default function CreateElection() {
     isDepartmentRestricted: false,
   });
 
+  const [selectedDeptIds, setSelectedDeptIds] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -25,6 +35,12 @@ export default function CreateElection() {
       [name]: type === 'checkbox' ? checked : value,
     }));
     if (errorMsg) setErrorMsg('');
+  };
+
+  const handleDeptToggle = (deptId) => {
+    setSelectedDeptIds((prev) =>
+      prev.includes(deptId) ? prev.filter((id) => id !== deptId) : [...prev, deptId]
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -55,6 +71,11 @@ export default function CreateElection() {
       return;
     }
 
+    if (formData.isDepartmentRestricted && selectedDeptIds.length === 0) {
+      setErrorMsg('Please select at least one academic department for restriction.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const startIso = start.toISOString();
@@ -68,6 +89,7 @@ export default function CreateElection() {
         startTime: startIso,
         endTime: endIso,
         isDepartmentRestricted: formData.isDepartmentRestricted,
+        departmentIds: formData.isDepartmentRestricted ? selectedDeptIds : [],
       };
 
       const res = await electionService.createElection(payload);
@@ -161,39 +183,45 @@ export default function CreateElection() {
             />
           </div>
 
-          {/* Start & End Dates */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
-                Start Date & Time *
-              </label>
-              <input
-                type="datetime-local"
-                name="startDate"
-                value={formData.startDate}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 text-xs sm:text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
-              />
+          {/* Start & End Dates with explicit format helper */}
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5 text-xs text-slate-400">
+              <HelpCircle className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Time Format: Standard 12-hour (AM/PM) or 24-hour local datetime format</span>
             </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+                  Start Schedule (Date & Time) *
+                </label>
+                <input
+                  type="datetime-local"
+                  name="startDate"
+                  value={formData.startDate}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 text-xs sm:text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
-                End Date & Time *
-              </label>
-              <input
-                type="datetime-local"
-                name="endDate"
-                value={formData.endDate}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 text-xs sm:text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
-              />
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+                  End Schedule (Date & Time) *
+                </label>
+                <input
+                  type="datetime-local"
+                  name="endDate"
+                  value={formData.endDate}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 text-xs sm:text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                />
+              </div>
             </div>
           </div>
 
-          {/* Department Restriction Checkbox */}
-          <div className="pt-2">
+          {/* Department Restriction Checkbox & Selector */}
+          <div className="pt-2 space-y-3">
             <label className="flex items-center gap-2.5 cursor-pointer">
               <input
                 type="checkbox"
@@ -203,9 +231,47 @@ export default function CreateElection() {
                 className="w-4 h-4 rounded border-slate-800 bg-slate-950 text-indigo-600 focus:ring-indigo-500"
               />
               <span className="text-xs font-medium text-slate-300">
-                Restrict voting to specific academic departments
+                Restrict voting eligibility to specific academic departments
               </span>
             </label>
+
+            {/* Department Multi-select Checklist */}
+            {formData.isDepartmentRestricted && (
+              <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3 animate-fadeIn">
+                <div className="flex items-center gap-2 text-xs font-semibold text-indigo-300">
+                  <Building2 className="w-4 h-4" />
+                  <span>Select Eligible Departments:</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {AVAILABLE_DEPARTMENTS.map((dept) => {
+                    const isChecked = selectedDeptIds.includes(dept.id);
+                    return (
+                      <button
+                        key={dept.id}
+                        type="button"
+                        onClick={() => handleDeptToggle(dept.id)}
+                        className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 text-xs transition-all ${
+                          isChecked
+                            ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-200'
+                            : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {}}
+                          className="w-3.5 h-3.5 rounded border-slate-800 bg-slate-950 text-indigo-600"
+                        />
+                        <div className="truncate">
+                          <span className="font-bold text-white mr-1.5">{dept.code}</span>
+                          <span className="text-[11px] text-slate-400">{dept.name}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Submit Buttons */}

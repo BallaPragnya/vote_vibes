@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, Eye, EyeOff, UserPlus, AlertCircle, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, UserPlus, AlertCircle, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
 
 export default function RegisterPage() {
@@ -56,9 +56,9 @@ export default function RegisterPage() {
     setIsSubmitting(false);
 
     if (result.success) {
-      setSuccessMsg('Account registered successfully! Redirecting to dashboard...');
+      setSuccessMsg('Account registered successfully! Redirecting to portal...');
       setTimeout(() => {
-        navigate('/dashboard', { replace: true });
+        navigate('/voter/dashboard', { replace: true });
       }, 800);
     } else {
       setErrorMsg(result.message || 'Registration failed. Please try again.');
@@ -81,8 +81,16 @@ export default function RegisterPage() {
             Create Account
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Register as a voter on the VoteVibes college election platform
+            Register as a student voter on the VoteVibes college election platform
           </p>
+        </div>
+
+        {/* Candidate Nomination Info Callout */}
+        <div className="mb-6 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[11px] leading-relaxed flex items-start gap-2">
+          <Sparkles className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <span>
+            <strong>Running for office?</strong> Register your student voter account here first. After log in, submit a <em>Candidate Nomination Application</em> for any open election!
+          </span>
         </div>
 
         {/* Notifications */}
@@ -119,15 +127,15 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 placeholder="Jane Student"
                 required
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 text-sm placeholder-slate-600 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 text-sm placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
               />
             </div>
           </div>
 
-          {/* Email Address */}
+          {/* Email */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
-              Email Address
+              College Email Address
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
@@ -140,7 +148,7 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 placeholder="student@college.edu"
                 required
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 text-sm placeholder-slate-600 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 text-sm placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
               />
             </div>
           </div>
@@ -148,7 +156,7 @@ export default function RegisterPage() {
           {/* Password */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
-              Password
+              Password (Min 8 chars)
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
@@ -159,15 +167,15 @@ export default function RegisterPage() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="At least 8 characters"
+                placeholder="••••••••"
                 required
                 minLength={8}
-                className="w-full pl-10 pr-10 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 text-sm placeholder-slate-600 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all"
+                className="w-full pl-10 pr-10 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 text-sm placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -188,9 +196,9 @@ export default function RegisterPage() {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                placeholder="Repeat password"
+                placeholder="••••••••"
                 required
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 text-sm placeholder-slate-600 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-100 text-sm placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
               />
             </div>
           </div>
@@ -199,7 +207,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3 px-4 bg-gradient-to-r from-violet-500 via-indigo-600 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-semibold text-sm rounded-xl shadow-lg shadow-violet-500/25 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-500 via-indigo-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-bold text-xs shadow-lg shadow-indigo-500/25 transition-all transform active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
           >
             {isSubmitting ? (
               <>
@@ -215,10 +223,10 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        {/* Footer Navigation */}
-        <div className="mt-6 text-center text-xs text-slate-400 pt-4 border-t border-slate-800/80">
-          Already registered?{' '}
-          <Link to="/login" className="font-semibold text-violet-400 hover:text-violet-300 underline">
+        {/* Footer Link */}
+        <div className="mt-6 text-center text-xs text-slate-400">
+          Already have an account?{' '}
+          <Link to="/login" className="font-semibold text-indigo-400 hover:text-indigo-300 underline">
             Sign in here
           </Link>
         </div>
