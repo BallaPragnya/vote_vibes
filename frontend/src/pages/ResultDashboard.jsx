@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import resultService from '../services/resultService';
+import electionService from '../services/electionService';
 import ResultSummaryCards from '../components/ResultSummaryCards';
 import VoteDistributionChart from '../components/VoteDistributionChart';
 import TurnoutChart from '../components/TurnoutChart';
@@ -9,48 +10,86 @@ import WinnerAnnouncement from '../components/WinnerAnnouncement';
 import PdfSummaryWidget from '../components/PdfSummaryWidget';
 import ResultLoadingSkeleton from '../components/ResultLoadingSkeleton';
 import ResultErrorState from '../components/ResultErrorState';
-import { BarChart3, ShieldCheck, ArrowLeft, RefreshCw, Trophy, Sparkles } from 'lucide-react';
+import { BarChart3, ShieldCheck, ArrowLeft, RefreshCw, Trophy, Sparkles, Inbox } from 'lucide-react';
 
 export default function ResultDashboard() {
-  const { electionId } = useParams();
+  const { electionId: routeElectionId } = useParams();
+  const navigate = useNavigate();
+
+  const [electionsList, setElectionsList] = useState([]);
+  const [selectedElectionId, setSelectedElectionId] = useState(routeElectionId || '');
 
   const [electionData, setElectionData] = useState(null);
   const [resultsData, setResultsData] = useState(null);
-  const [turnoutInfo, setTurnoutInfo] = useState({ totalVotesCast: 0, eligibleVoters: 500, turnoutPercentage: 0 });
+  const [turnoutInfo, setTurnoutInfo] = useState({ totalVotesCast: 0, eligibleVoters: 0, turnoutPercentage: 0 });
   const [winners, setWinners] = useState([]);
   const [demographics, setDemographics] = useState([]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // 1. Fetch available elections list
+  useEffect(() => {
+    async function loadElections() {
+      try {
+        const res = await electionService.getAllElections();
+        let items = [];
+        if (res?.data) {
+          if (Array.isArray(res.data)) items = res.data;
+          else if (Array.isArray(res.data.elections)) items = res.data.elections;
+          else if (Array.isArray(res.data.data)) items = res.data.data;
+        } else if (Array.isArray(res)) {
+          items = res;
+        }
+        setElectionsList(items);
+
+        if (!selectedElectionId && items.length > 0) {
+          setSelectedElectionId(items[0].id);
+        }
+      } catch (err) {
+        // Non-blocking election list load error
+      }
+    }
+    loadElections();
+  }, [routeElectionId]);
+
+  // Sync state if route URL changes
+  useEffect(() => {
+    if (routeElectionId) {
+      setSelectedElectionId(routeElectionId);
+    }
+  }, [routeElectionId]);
+
+  // 2. Load dashboard results data for selected election
   const loadDashboardData = useCallback(async () => {
+    if (!selectedElectionId) {
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setError('');
 
-    const targetId = electionId || 'demo-election-id';
-
     try {
-      // 1. Fetch election details & results
       let elec = null;
       let res = null;
 
       try {
-        const elecRes = await resultService.getElectionDetails(targetId);
+        const elecRes = await resultService.getElectionDetails(selectedElectionId);
         elec = elecRes?.data || elecRes;
       } catch (err) {
-        // Fallback info if single election fetch fails
+        // Fallback
       }
 
       try {
-        const resultsRes = await resultService.getElectionResults(targetId);
+        const resultsRes = await resultService.getElectionResults(selectedElectionId);
         res = resultsRes?.data || resultsRes;
       } catch (err) {
-        // Backend results hidden / pending
+        // Handle API error
       }
 
-      // If backend data is available, process it
-      if (res && res.results) {
-        setElectionData(elec || { title: res.electionTitle || 'Student Council Election 2026', status: res.status });
+      if (res && (res.results || res.totalVotesCast !== undefined)) {
+        setElectionData(elec || { title: res.electionTitle || 'College Election', status: res.status });
         setResultsData(res);
 
         const turnout = resultService.calculateTurnout(res, elec);
@@ -61,56 +100,32 @@ export default function ResultDashboard() {
 
         const demoBreakdown = resultService.extractDemographicBreakdown(res);
         setDemographics(demoBreakdown);
+      } else if (elec) {
+        setElectionData(elec);
+        setResultsData({ electionId: selectedElectionId, electionTitle: elec.title, status: elec.status, results: [] });
+        setTurnoutInfo({ totalVotesCast: 0, eligibleVoters: 500, turnoutPercentage: 0 });
+        setWinners([]);
+        setDemographics([]);
       } else {
-        // Render rich preview dashboard so UI structure can be visually inspected
-        const previewData = {
-          electionId: targetId,
-          electionTitle: elec?.title || 'Campus General Election 2026',
-          status: elec?.status || 'COMPLETED',
-          results: [
-            {
-              positionId: 'pos-1',
-              positionTitle: 'President',
-              totalVotesCast: 340,
-              candidates: [
-                { id: 'c1', fullName: 'Jane Student', voteCount: 210, profileImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200' },
-                { id: 'c2', fullName: 'John Smith', voteCount: 130, profileImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200' },
-              ]
-            },
-            {
-              positionId: 'pos-2',
-              positionTitle: 'Vice President',
-              totalVotesCast: 320,
-              candidates: [
-                { id: 'c3', fullName: 'Alex Rivera', voteCount: 195, profileImage: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200' },
-                { id: 'c4', fullName: 'Taylor Swift', voteCount: 125, profileImage: null },
-              ]
-            }
-          ]
-        };
-
-        setElectionData({ title: previewData.electionTitle, status: previewData.status });
-        setResultsData(previewData);
-
-        const turnout = resultService.calculateTurnout(previewData, elec);
-        setTurnoutInfo(turnout);
-
-        const extractedWinners = resultService.extractWinners(previewData);
-        setWinners(extractedWinners);
-
-        const demoBreakdown = resultService.extractDemographicBreakdown(previewData);
-        setDemographics(demoBreakdown);
+        setElectionData(null);
+        setResultsData(null);
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load election results dashboard.');
     } finally {
       setIsLoading(false);
     }
-  }, [electionId]);
+  }, [selectedElectionId]);
 
   useEffect(() => {
     loadDashboardData();
   }, [loadDashboardData]);
+
+  const handleElectionChange = (e) => {
+    const id = e.target.value;
+    setSelectedElectionId(id);
+    navigate(`/results/${id}`);
+  };
 
   if (isLoading) {
     return <ResultLoadingSkeleton />;
@@ -121,11 +136,13 @@ export default function ResultDashboard() {
   }
 
   const positions = resultsData?.results || [];
+  const hasNoElections = electionsList.length === 0 && !selectedElectionId;
+  const hasNoResults = !resultsData || positions.length === 0;
 
   return (
     <div className="space-y-8 py-4 max-w-7xl mx-auto">
       {/* Navigation back button */}
-      <div>
+      <div className="flex items-center justify-between">
         <Link
           to="/elections"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
@@ -133,6 +150,24 @@ export default function ResultDashboard() {
           <ArrowLeft className="w-4 h-4" />
           Back to Elections Hub
         </Link>
+
+        {/* Election Selector Dropdown */}
+        {electionsList.length > 0 && (
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-semibold text-slate-400">Select Election:</label>
+            <select
+              value={selectedElectionId}
+              onChange={handleElectionChange}
+              className="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs font-medium text-slate-200 focus:outline-none focus:border-amber-500"
+            >
+              {electionsList.map((elec) => (
+                <option key={elec.id} value={elec.id} className="bg-slate-950 text-white">
+                  {elec.title} ({elec.status})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Main Header Banner */}
@@ -143,7 +178,7 @@ export default function ResultDashboard() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-semibold mb-3">
               <Sparkles className="w-3.5 h-3.5" />
-              Phase 6 Results & Analytics Dashboard
+              Results & Analytics
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
               {electionData?.title || 'Campus Election Results'}
@@ -165,44 +200,66 @@ export default function ResultDashboard() {
         </div>
       </div>
 
-      {/* Summary Stat Cards */}
-      <ResultSummaryCards
-        turnoutInfo={turnoutInfo}
-        positionsCount={positions.length}
-        winnerCount={winners.length}
-      />
+      {/* Clean Empty State when no elections or zero vote results exist */}
+      {hasNoElections || hasNoResults ? (
+        <div className="py-20 px-6 text-center bg-slate-900/60 border border-slate-800 rounded-3xl backdrop-blur-md max-w-md mx-auto space-y-4">
+          <div className="p-4 bg-indigo-500/10 rounded-2xl w-fit mx-auto border border-indigo-500/20 text-indigo-400">
+            <Inbox className="w-10 h-10" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-white mb-1">No Election Results Available</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              {hasNoElections
+                ? 'There are no election events created in the system yet.'
+                : 'No ballots or tally results have been recorded for this election yet.'}
+            </p>
+          </div>
+          <Link
+            to="/elections"
+            className="inline-block px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-lg shadow-indigo-500/20 transition-all"
+          >
+            Explore Elections
+          </Link>
+        </div>
+      ) : (
+        <>
+          {/* Summary Stat Cards */}
+          <ResultSummaryCards
+            turnoutInfo={turnoutInfo}
+            positionsCount={positions.length}
+            winnerCount={winners.length}
+          />
 
-      {/* Winner Announcement Component */}
-      <WinnerAnnouncement
-        electionTitle={electionData?.title}
-        winners={winners}
-      />
+          {/* Winner Announcement Component */}
+          <WinnerAnnouncement
+            electionTitle={electionData?.title}
+            winners={winners}
+          />
 
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Turnout Chart */}
-        <TurnoutChart turnoutInfo={turnoutInfo} />
+          {/* Charts Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <TurnoutChart turnoutInfo={turnoutInfo} />
+            <DemographicBreakdownChart demographicData={demographics} />
+          </div>
 
-        {/* Demographic Breakdown Chart */}
-        <DemographicBreakdownChart demographicData={demographics} />
-      </div>
+          {/* Position Vote Distribution Charts */}
+          {positions.map((pos) => (
+            <VoteDistributionChart
+              key={pos.positionId}
+              positionTitle={pos.positionTitle}
+              candidates={pos.candidates}
+            />
+          ))}
 
-      {/* Position Vote Distribution Charts */}
-      {positions.map((pos) => (
-        <VoteDistributionChart
-          key={pos.positionId}
-          positionTitle={pos.positionTitle}
-          candidates={pos.candidates}
-        />
-      ))}
-
-      {/* Downloadable PDF Summary Widget */}
-      <PdfSummaryWidget
-        electionTitle={electionData?.title}
-        resultsData={resultsData}
-        winners={winners}
-        turnoutInfo={turnoutInfo}
-      />
+          {/* Downloadable PDF Summary Widget */}
+          <PdfSummaryWidget
+            electionTitle={electionData?.title}
+            resultsData={resultsData}
+            winners={winners}
+            turnoutInfo={turnoutInfo}
+          />
+        </>
+      )}
     </div>
   );
 }

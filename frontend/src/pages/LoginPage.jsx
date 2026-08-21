@@ -72,7 +72,7 @@ export default function LoginPage() {
             <Lock className="w-6 h-6" />
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-            Voter Login
+            Login
           </h2>
           <p className="text-xs text-slate-400 mt-1">
             Sign in to access your VoteVibes digital election portal
@@ -119,18 +119,9 @@ export default function LoginPage() {
 
           {/* Password */}
           <div>
-            <div className="flex justify-between items-center mb-1.5">
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                Password
-              </label>
-              <Link
-                to="/forgot-password"
-                className="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1"
-              >
-                <KeyRound className="w-3 h-3" />
-                Forgot Password?
-              </Link>
-            </div>
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+              Password
+            </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
                 <Lock className="w-4 h-4" />
@@ -147,7 +138,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -158,25 +149,28 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3 px-4 bg-gradient-to-r from-indigo-500 via-purple-600 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-semibold text-sm rounded-xl shadow-lg shadow-indigo-500/25 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-600 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-bold text-xs shadow-lg shadow-indigo-500/25 transition-all transform active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
           >
             {isSubmitting ? (
               <>
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span>Authenticating Credentials...</span>
+                <span>Signing In...</span>
               </>
             ) : (
               <>
                 <LogIn className="w-4 h-4" />
-                <span>Sign In to VoteVibes</span>
+                <span>Login</span>
               </>
             )}
           </button>
         </form>
 
-        {/* Demo Quick Fill Badges */}
-        <div className="mt-8 pt-6 border-t border-slate-800/80 text-center">
-          <p className="text-[11px] text-slate-500 mb-2 font-medium">Quick Test Autofill</p>
+        {/* Quick Demo Fill Buttons */}
+        <div className="mt-6 pt-5 border-t border-slate-800/80 text-center">
+          <p className="text-[11px] text-slate-400 font-medium mb-2 flex items-center justify-center gap-1">
+            <KeyRound className="w-3 h-3 text-indigo-400" />
+            <span>Quick Login Options</span>
+          </p>
           <div className="flex justify-center gap-2 flex-wrap">
             <button
               type="button"
@@ -194,10 +188,10 @@ export default function LoginPage() {
             </button>
             <button
               type="button"
-              onClick={() => fillQuickDemo('admin@college.edu', 'adminPassword123')}
+              onClick={() => fillQuickDemo('admin@votevibes.com', 'adminPassword123')}
               className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-purple-300 hover:bg-slate-800/50 transition-colors"
             >
-              Administrator
+              Seeded Admin
             </button>
           </div>
         </div>
